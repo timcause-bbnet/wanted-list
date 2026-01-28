@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>【核心管理】蒼貓模型懸賞名單</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@900&display=swap');
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; background-color: #1a1a1a; 
+            background-size: cover; background-position: center; background-attachment: fixed;
+            display: flex; flex-direction: column; align-items: center; color: #f1f1f1; margin: 0; padding: 20px;
+        }
+        h1 { font-size: 55px; color: #ffcc33; filter: drop-shadow(2px 2px 4px #000); margin: 20px 0; letter-spacing: 5px; }
+        #poster-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin-bottom: 40px; }
+        .poster-wrapper { position: relative; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 12px; border: 1px solid #444; }
+        
+        .wanted-poster {
+            width: 320px; background-color: #dfc9a5; background-image: url('https://www.transparenttextures.com/patterns/papyros.png');
+            padding: 30px 20px 15px 20px; color: #3e2723; text-align: center; border: 1px solid #bc9b6a; box-sizing: border-box; position: relative;
+        }
+        .wanted-header { font-size: 64px; font-family: 'Impact', sans-serif; font-weight: 900; line-height: 0.8; margin-bottom: 10px; transform: scaleY(1.2); }
+        .photo-area { width: 270px; height: 200px; border: 5px solid #3e2723; margin: 0 auto; overflow: hidden; position: relative; background: #ddd; }
+        .photo-area img { width: 100%; height: 100%; object-fit: cover; position: absolute; transition: 0.1s; }
+        .dead-or-alive { font-size: 18px; font-family: 'Impact', sans-serif; margin: 8px 0; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #3e2723; border-bottom: 1px solid #3e2723; padding: 2px 0; }
+        .dead-or-alive::before, .dead-or-alive::after { content: "๑"; font-size: 25px; }
+        .crime-display { font-size: 16px; font-weight: bold; margin-bottom: 15px; min-height: 20px; line-height: 1.2; }
+        .name-display { font-size: 36px; font-family: 'Impact', sans-serif; text-transform: uppercase; line-height: 1; min-height: 45px; }
+        .bounty-display { font-size: 22px; font-family: 'Impact', sans-serif; margin-top: 5px; font-weight: bold; }
+        .bottom-decoration { font-size: 8px; text-align: left; line-height: 1; margin-top: 5px; opacity: 0.8; width: 70%; float: left; white-space: normal; }
+        .marine-footer { font-size: 26px; font-family: 'Impact', sans-serif; text-align: right; margin-top: -5px; }
+
+        .controls { background: rgba(30, 30, 30, 0.95); padding: 25px; border-radius: 20px; width: 420px; border: 2px solid #ffcc33; }
+        input { width: 100%; margin-bottom: 15px; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #000; color: white; box-sizing: border-box; }
+        button { padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; font-size: 16px; width: 100%; margin-bottom: 10px; }
+        .main-btn { background: #e67e22; color: white; }
+        .sync-btn { background: #27ae60; color: white; }
+        .clear-btn { background: #c0392b; color: white; }
+        .delete-btn { position: absolute; top: -10px; right: -10px; background: #ff4444; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; border: 2px solid white; z-index: 10; line-height: 26px; text-align: center; }
+        .btn-move { background: #555; color: white; font-size: 18px; width: 45px; margin: 2px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <h1>懸賞名單管理後台</h1>
+    <div id="poster-container">正在從 GitHub 同步最新資料...</div>
+
+    <div class="controls">
+        <label>🖼️ 網頁大背景圖 (上傳)</label>
+        <input type="file" id="bgUpload" accept="image/*" onchange="encodeBg(this)">
+        <label>稱號 / 罪名</label>
+        <input type="text" id="crimeInput" placeholder="例如：最強劍士">
+        <label>對象名稱</label>
+        <input type="text" id="nameInput" placeholder="例如：名字">
+        <label>金額</label>
+        <input type="number" id="bountyInput" placeholder="30000000">
+        <label>👤 人物照片 (上傳)</label>
+        <input type="file" id="imgUpload" accept="image/*">
+        
+        <button class="main-btn" onclick="addPoster()">➕ 新增懸賞令</button>
+        <button class="sync-btn" onclick="syncToGitHub()">🚀 同步到 GitHub (發佈)</button>
+        <button class="clear-btn" onclick="clearAll()">🗑️ 一鍵清空名單</button>
+        <p id="status" style="text-align:center; font-weight:bold; color:#ffcc33;"></p>
+    </div>
+
+    <script>
+        let postersData = [];
+        let config = {
+            token: "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", 
+            user: "timcause-bbnet",
+            repo: "wanted-list",
+            bg: ""
+        };
+
+        window.onload = loadFromGitHub;
+
+        async function loadFromGitHub() {
+            const url = `https://api.github.com/repos/${config.user}/${config.repo}/contents/data.json`;
+            try {
+                const res = await fetch(url, { headers: { "Authorization": `token ${config.token}` } });
+                if (res.ok) {
+                    const json = await res.json();
+                    const content = JSON.parse(decodeURIComponent(escape(atob(json.content))));
+                    postersData = content.posters || [];
+                    config.bg = content.bg || "";
+                    if (config.bg) document.body.style.backgroundImage = `url(${config.bg})`;
+                }
+                render();
+            } catch (e) { document.getElementById('poster-container').innerText = "尚未有存檔"; }
+        }
+
+        function encodeBg(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => { config.bg = e.target.result; document.body.style.backgroundImage = `url(${e.target.result})`; };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function addPoster() {
+            const imgInput = document.getElementById('imgUpload');
+            if (!imgInput.files[0]) return alert("請上傳人物照片！");
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                postersData.push({
+                    crime: document.getElementById('crimeInput').value || "",
+                    name: document.getElementById('nameInput').value || "UNKNOWN",
+                    bounty: "฿ " + Number(document.getElementById('bountyInput').value).toLocaleString() + "-",
+                    img: e.target.result,
+                    top: "0px", left: "0px"
+                });
+                render();
+            };
+            reader.readAsDataURL(imgInput.files[0]);
+        }
+
+        function render() {
+            const container = document.getElementById('poster-container');
+            container.innerHTML = postersData.length ? "" : "目前名單為空";
+            postersData.forEach((p, i) => {
+                const div = document.createElement('div');
+                div.className = "poster-wrapper";
+                div.innerHTML = `
+                    <div class="delete-btn" onclick="removePoster(${i})">X</div>
+                    <div class="wanted-poster">
+                        <div class="wanted-header">WANTED</div>
+                        <div class="photo-area"><img src="${p.img}" style="top:${p.top}; left:${p.left}; transform:scale(1.2);"></div>
+                        <div class="dead-or-alive">DEAD OR ALIVE</div>
+                        <div class="crime-display">${p.crime}</div>
+                        <div class="name-display">${p.name}</div>
+                        <div class="bounty-display">${p.bounty}</div>
+                        <div class="bottom-decoration">
+                            KONO SAKUHIN WA FICTION DETHUNODE JITSUSAINO J人物 BUTSU DAITAI SONOTA NO SOSHIKI TO DOITSU NO MEISHOU GA GEKICHU NI TOUJO SHITEMO JITSUSAINO MONO TO WA ISSAI MUKANKEIDETHU.
+                        </div>
+                        <div class="marine-footer">MARINE</div>
+                    </div>
+                    <div class="move-controls" style="text-align:center; margin-top:10px;">
+                        <button class="btn-move" onclick="moveImg(${i},'up')">↑</button><br>
+                        <button class="btn-move" onclick="moveImg(${i},'left')">←</button>
+                        <button class="btn-move" onclick="moveImg(${i},'down')">↓</button>
+                        <button class="btn-move" onclick="moveImg(${i},'right')">→</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function moveImg(i, dir) {
+            let p = postersData[i];
+            let t = parseInt(p.top) || 0, l = parseInt(p.left) || 0;
+            if(dir==='up') t-=10; if(dir==='down') t+=10; if(dir==='left') l-=10; if(dir==='right') l+=10;
+            p.top = t+"px"; p.left = l+"px"; render();
+        }
+
+        function removePoster(i) { postersData.splice(i, 1); render(); }
+        function clearAll() { if(confirm("確定要清空所有名單並同步到 GitHub 嗎？")) { postersData = []; render(); } }
+
+        async function syncToGitHub() {
+            const status = document.getElementById('status');
+            status.innerText = "⏳ 正在同步到 GitHub...";
+            const url = `https://api.github.com/repos/${config.user}/${config.repo}/contents/data.json`;
+            
+            try {
+                const getRes = await fetch(url + "?t=" + Date.now(), { headers: { "Authorization": `token ${config.token}` } });
+                let sha = "";
+                if (getRes.ok) { const getJson = await getRes.json(); sha = getJson.sha; }
+
+                const content = btoa(unescape(encodeURIComponent(JSON.stringify({ bg: config.bg, posters: postersData }))));
+                
+                const putRes = await fetch(url, {
+                    method: "PUT",
+                    headers: { "Authorization": `token ${config.token}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: "Update Data via Admin", content: content, sha: sha })
+                });
+
+                if (putRes.ok) {
+                    status.innerText = "✅ 同步成功！";
+                    status.style.color = "#27ae60";
+                } else {
+                    const err = await putRes.json();
+                    status.innerText = "❌ 失敗：" + err.message;
+                    status.style.color = "#ff4444";
+                }
+            } catch (e) { status.innerText = "❌ 發生錯誤：" + e.message; }
+        }
+    </script>
+</body>
+
+</html>
+
