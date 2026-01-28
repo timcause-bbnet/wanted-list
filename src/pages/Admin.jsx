@@ -3,9 +3,32 @@ import { Link } from 'react-router-dom';
 import WantedPoster from '../components/WantedPoster';
 
 const Admin = () => {
-    const [posters, setPosters] = useState([]);
-    const [bg, setBg] = useState("");
-    const LOCAL_STORAGE_KEY = 'wanted-list-data';
+    // Lazy init from LocalStorage to avoid "white screen" / flash of empty content
+    const [posters, setPosters] = useState(() => {
+        try {
+            const localData = localStorage.getItem('wanted-list-data');
+            if (localData) {
+                const parsed = JSON.parse(localData);
+                return parsed.posters || [];
+            }
+        } catch (e) {
+            console.error("Failed to parse local data", e);
+        }
+        return [];
+    });
+
+    const [bg, setBg] = useState(() => {
+        try {
+            const localData = localStorage.getItem('wanted-list-data');
+            if (localData) {
+                const parsed = JSON.parse(localData);
+                return parsed.bg || "";
+            }
+        } catch (e) {
+            console.error(e);
+        }
+        return "";
+    });
 
     const [newPoster, setNewPoster] = useState({
         crime: "",
@@ -15,49 +38,21 @@ const Admin = () => {
     });
 
     const [editingIndex, setEditingIndex] = useState(null);
-    const [loaded, setLoaded] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
-        loadData();
+        // If we have data from lazy init, we are initialized.
+        // If both are empty, we might need to fetch from data.json (first time user)
+        const checkInit = async () => {
+            if (posters.length === 0 && !bg) {
+                await loadFallbackData();
+            }
+            setIsInitialized(true);
+        };
+        checkInit();
     }, []);
 
-    // Auto-save to LocalStorage whenever posters or bg changes
-    useEffect(() => {
-        // Only save if we have finished initial loading
-        if (!loaded) return;
-
-        const save = () => {
-            const data = { posters, bg };
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-            // Trigger storage event for other tabs to pick up
-            window.dispatchEvent(new Event('storage'));
-        };
-
-        save();
-    }, [posters, bg, loaded]);
-
-    useEffect(() => {
-        if (bg) {
-            document.body.style.backgroundImage = `url(${bg})`;
-        }
-    }, [bg]);
-
-    const loadData = async () => {
-        // 1. Try LocalStorage first
-        const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (localData) {
-            try {
-                const parsed = JSON.parse(localData);
-                setPosters(parsed.posters || []);
-                setBg(parsed.bg || "");
-                setLoaded(true);
-                return;
-            } catch (e) {
-                console.error("Local data parse error", e);
-            }
-        }
-
-        // 2. Fallback to GitHub data.json (view only)
+    const loadFallbackData = async () => {
         try {
             const res = await fetch('data.json');
             if (res.ok) {
@@ -67,10 +62,18 @@ const Admin = () => {
             }
         } catch (e) {
             console.error("Fetch data error", e);
-        } finally {
-            setLoaded(true);
         }
     };
+
+    // Auto-save to LocalStorage whenever posters or bg changes
+    useEffect(() => {
+        // Prevent saving empty state if we haven't finished initialization
+        if (!isInitialized) return;
+
+        const data = { posters, bg };
+        localStorage.setItem('wanted-list-data', JSON.stringify(data));
+        window.dispatchEvent(new Event('storage'));
+    }, [posters, bg, isInitialized]);
 
     const handleBgUpload = (e) => {
         const file = e.target.files[0];
