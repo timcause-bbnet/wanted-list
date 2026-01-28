@@ -1,4 +1,11 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import WantedPoster from '../components/WantedPoster';
+
 const Admin = () => {
+    // URL Params for Auto-Config
+    const [searchParams, setSearchParams] = useSearchParams();
+
     // Database URL State
     const [dbUrl, setDbUrl] = useState(localStorage.getItem('wanted-list-db-url') || "");
     const [showSettings, setShowSettings] = useState(!dbUrl);
@@ -16,12 +23,44 @@ const Admin = () => {
 
     const [editingIndex, setEditingIndex] = useState(null);
 
-    // Initial Load
+    // 1. Check URL for Auto-Config (?db=ENCODED_URL)
+    useEffect(() => {
+        const paramDb = searchParams.get('db');
+        if (paramDb) {
+            try {
+                const url = atob(paramDb);
+                if (url.includes('firebaseio.com')) {
+                    saveDbUrl(url);
+                    // Clear param so it looks clean
+                    setSearchParams({});
+                }
+            } catch (e) {
+                console.error("Failed to parse db param", e);
+            }
+        }
+    }, [searchParams]);
+
+    // 2. Initial Load if DB URL exists
     useEffect(() => {
         if (dbUrl) {
             loadData();
         }
     }, [dbUrl]);
+
+    // ... (rest of methods)
+
+    const getShareLink = (type) => {
+        if (!dbUrl) return "";
+        const encoded = btoa(dbUrl);
+        const baseUrl = window.location.origin + window.location.pathname;
+        const hash = type === 'admin' ? '#/admin' : '#/'; // HashRouter syntax
+        return `${baseUrl}${hash}?db=${encoded}`;
+    };
+
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text).then(() => alert("連結已複製！"));
+    };
+
 
     const getFirebaseUrl = () => {
         if (!dbUrl) return "";
@@ -305,6 +344,27 @@ const Admin = () => {
 
                         <label style={{ display: 'block', color: 'white', marginBottom: '8px', fontSize: '14px', fontWeight: 'bold' }}>🖼️ 設定網頁大背景圖</label>
                         <input type="file" onChange={handleBgUpload} accept="image/*" style={{ color: 'white', width: '100%' }} />
+
+                        {dbUrl && (
+                            <>
+                                <hr style={{ borderColor: '#555', margin: '15px 0' }} />
+                                <label style={{ display: 'block', color: '#ffcc33', marginBottom: '8px', fontWeight: 'bold' }}>🔗 產生邀請連結</label>
+                                <div style={{ marginBottom: '10px' }}>
+                                    <div style={{ color: 'white', fontSize: '12px', marginBottom: '3px' }}>給客人 (展示區):</div>
+                                    <div style={{ display: 'flex', gap: '5px' }}>
+                                        <input readOnly value={getShareLink('gallery')} style={{ flex: 1, background: '#222', border: '1px solid #444', color: '#888', fontSize: '11px' }} />
+                                        <button onClick={() => copyToClipboard(getShareLink('gallery'))} style={{ width: 'auto', padding: '5px 10px', fontSize: '12px' }}>複製</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style={{ color: 'white', fontSize: '12px', marginBottom: '3px' }}>給朋友 (後台):</div>
+                                    <div style={{ display: 'flex', gap: '5px' }}>
+                                        <input readOnly value={getShareLink('admin')} style={{ flex: 1, background: '#222', border: '1px solid #444', color: '#888', fontSize: '11px' }} />
+                                        <button onClick={() => copyToClipboard(getShareLink('admin'))} style={{ width: 'auto', padding: '5px 10px', fontSize: '12px' }}>複製</button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
             </div>

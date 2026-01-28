@@ -50,8 +50,8 @@ h1.gallery-title {
     background: #000;
     border-top: 5px dashed #333;
     border-bottom: 5px dashed #333;
-    /* Use minimal padding, rely on flex alignment */
-    padding: 0;
+    /* Padding to prevent 3D rotated posters from being clipped */
+    padding: 40px 0;
     position: relative;
     overflow: hidden;
     white-space: nowrap;
