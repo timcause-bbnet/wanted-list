@@ -4,26 +4,59 @@ import WantedPoster from '../components/WantedPoster';
 
 const Gallery = () => {
     const [searchParams, setSearchParams] = useSearchParams();
-    const [dbUrl, setDbUrl] = useState(localStorage.getItem('wanted-list-db-url') || "");
-    const [showSettings, setShowSettings] = useState(!dbUrl);
+
+    // Initialize from LocalStorage
+    const [dbUrl, setDbUrl] = useState(() => localStorage.getItem('wanted-list-db-url') || "");
+    // If we have a DB URL, don't show settings. OR if we have a pending 'db' param, don't show settings yet (wait for effect).
+    const [showSettings, setShowSettings] = useState(() => {
+        const hasLocal = !!localStorage.getItem('wanted-list-db-url');
+        const hasParam = window.location.href.includes('db=');
+        return !hasLocal && !hasParam;
+    });
 
     const [posters, setPosters] = useState([]);
     const [bg, setBg] = useState("");
     const [loading, setLoading] = useState(false);
 
+    // Manual Helper to save and apply
+    const applyDbConfig = (url) => {
+        localStorage.setItem('wanted-list-db-url', url);
+        setDbUrl(url);
+        setShowSettings(false);
+        // Clear URL param to look clean
+        setSearchParams({});
+    };
+
     // Auto-config from URL share link
     useEffect(() => {
-        const paramDb = searchParams.get('db');
+        // Try standard param
+        let paramDb = searchParams.get('db');
+
+        // Fallback: Manual Parse (HashRouter sometimes tricky)
+        if (!paramDb && window.location.href.includes('db=')) {
+            try {
+                const parts = window.location.href.split('db=');
+                if (parts[1]) {
+                    paramDb = parts[1].split('&')[0];
+                }
+            } catch (e) { }
+        }
+
         if (paramDb) {
             try {
-                const url = atob(paramDb);
+                // Handle potential double encoding or weird chars
+                const cleanParam = paramDb.replace(/[^A-Za-z0-9+/=]/g, "");
+                const url = atob(cleanParam);
                 if (url.startsWith('http')) {
-                    saveDbUrl(url);
-                    setSearchParams({});
+                    console.log("Auto-configuring DB:", url);
+                    applyDbConfig(url);
                 }
             } catch (e) {
                 console.error("Auto-config failed", e);
             }
+        } else if (!dbUrl) {
+            // Only show settings if we really have no DB and no param
+            setShowSettings(true);
         }
     }, [searchParams]);
 
@@ -64,11 +97,7 @@ const Gallery = () => {
         }
     };
 
-    const saveDbUrl = (url) => {
-        localStorage.setItem('wanted-list-db-url', url);
-        setDbUrl(url);
-        setShowSettings(false);
-    };
+
 
     // Helper to generate a seamless loop content
     const renderMarqueeContent = (sourcePosters) => {
@@ -116,7 +145,7 @@ const Gallery = () => {
                         type="text"
                         placeholder="https://your-project.firebaseio.com"
                         defaultValue={dbUrl}
-                        onBlur={(e) => saveDbUrl(e.target.value)}
+                        onBlur={(e) => applyDbConfig(e.target.value)}
                         style={{ padding: '10px', width: '300px', borderRadius: '5px', border: 'none' }}
                     />
                     <p style={{ fontSize: '12px', color: '#aaa', marginTop: '10px' }}>輸入後點擊空白處自動儲存</p>
