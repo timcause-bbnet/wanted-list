@@ -46,12 +46,13 @@ h1.gallery-title {
 .film-row {
     /* Flex growing to fill viewport efficiently */
     flex: 1;
-    margin: 5px 0;
-    background: #000;
-    border-top: 5px dashed #333;
-    border-bottom: 5px dashed #333;
+    margin: 10px 0;
+
+    /* Removed film strip styling as requested */
+    background: transparent;
+
     /* Reduced padding to maximize vertical space for posters */
-    padding: 10px 0;
+    padding: 20px 0;
     position: relative;
     overflow: hidden;
     white-space: nowrap;
@@ -139,8 +140,8 @@ h1.gallery-title {
 
 /* Wanted Poster Styles - 3D Effect */
 .wanted-poster {
-    width: 220px;
-    /* Slightly smaller for film strip */
+    width: 260px;
+    /* Adjusted size for transparent carousel */
     background-color: #dfc9a5;
     background-image: url('https://www.transparenttextures.com/patterns/papyros.png');
     padding: 15px 10px 10px 10px;
@@ -178,8 +179,8 @@ h1.gallery-title {
 }
 
 .photo-area {
-    width: 180px;
-    height: 135px;
+    width: 220px;
+    height: 165px;
     border: 4px solid #3e2723;
     margin: 0 auto;
     overflow: hidden;
