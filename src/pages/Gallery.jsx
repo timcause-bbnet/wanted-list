@@ -176,7 +176,7 @@ const Gallery = () => {
                 title="設定"
             ></div>
 
-            <h1 className="gallery-title" style={{ marginTop: 0, marginBottom: '2vh' }}>蒼貓模型懸賞展示區</h1>
+            <h1 className="gallery-title" style={{ marginTop: 0, marginBottom: '2vh' }}>蒼貓模型懸賞區</h1>
 
             {posters.length === 0 ? (
                 <div style={{ textAlign: 'center', fontSize: '24px', padding: '50px' }}>目前沒有懸賞名單</div>
