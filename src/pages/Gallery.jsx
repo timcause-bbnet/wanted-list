@@ -166,7 +166,12 @@ const Gallery = () => {
         );
     }
 
-    if (!dbUrl || showSettings) {
+    // Explicitly override settings view if we have a hardcoded URL
+    // This effectively disables the settings UI if configured in code
+    const isHardcoded = !!DEFAULT_DB_URL;
+    const shouldShowSettings = !isHardcoded && (!dbUrl || showSettings);
+
+    if (shouldShowSettings) {
         return (
             <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#1a1a1a', color: 'white' }}>
                 <h1 className="gallery-title">展示區設定</h1>
@@ -198,12 +203,14 @@ const Gallery = () => {
             paddingTop: '30px',
             backgroundColor: '#1a1a1a'
         }}>
-            {/* Settings Trigger */}
-            <div
-                onClick={() => setShowSettings(true)}
-                style={{ position: 'absolute', top: 0, left: 0, width: '50px', height: '50px', zIndex: 1000, cursor: 'pointer' }}
-                title="設定"
-            ></div>
+            {/* Settings Trigger (Only if not hardcoded) */}
+            {!DEFAULT_DB_URL && (
+                <div
+                    onClick={() => setShowSettings(true)}
+                    style={{ position: 'absolute', top: 0, left: 0, width: '50px', height: '50px', zIndex: 1000, cursor: 'pointer' }}
+                    title="設定"
+                ></div>
+            )}
 
             <h1 className="gallery-title" style={{ marginTop: 0, marginBottom: '2vh' }}>蒼貓模型懸賞區</h1>
 
