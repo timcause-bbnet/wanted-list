@@ -259,6 +259,11 @@ const Admin = () => {
         <div>
             <div style={{ position: 'fixed', top: 20, left: 20, zIndex: 1000 }}>
                 <Link to="/" className="nav-link" style={{ position: 'static', marginRight: '10px' }}>前往展示區</Link>
+
+                <div style={{ marginTop: '15px', background: 'rgba(30, 30, 30, 0.9)', padding: '15px', borderRadius: '10px', border: '1px solid #ffcc33' }}>
+                    <label style={{ display: 'block', color: 'white', marginBottom: '8px', fontSize: '14px', fontWeight: 'bold' }}>🖼️ 設定網頁大背景圖</label>
+                    <input type="file" onChange={handleBgUpload} accept="image/*" style={{ color: 'white', width: '200px' }} />
+                </div>
             </div>
 
             <h1 className="page-title">懸賞名單管理後台</h1>
@@ -279,9 +284,6 @@ const Admin = () => {
             </div>
 
             <div className="controls">
-                <label>🖼️ 網頁大背景圖 (上傳)</label>
-                <input type="file" onChange={handleBgUpload} accept="image/*" />
-
                 <div style={{ borderTop: '1px solid #555', margin: '20px 0', paddingTop: '20px' }}>
                     <h3 style={{ marginTop: 0, color: editingIndex !== null ? '#38bdf8' : 'white' }}>
                         {editingIndex !== null ? '✏️ 編輯懸賞單' : '➕ 新增懸賞單'}
@@ -290,7 +292,7 @@ const Admin = () => {
                     <label>稱號 / 罪名</label>
                     <input
                         type="text"
-                        placeholder="例如：最強劍士"
+                        placeholder="例如：惹老闆傷心"
                         value={newPoster.crime}
                         onChange={(e) => setNewPoster({ ...newPoster, crime: e.target.value })}
                     />
@@ -298,7 +300,7 @@ const Admin = () => {
                     <label>對象名稱</label>
                     <input
                         type="text"
-                        placeholder="例如：名字"
+                        placeholder="例如：3抽就中A的那幾個"
                         value={newPoster.name}
                         onChange={(e) => setNewPoster({ ...newPoster, name: e.target.value })}
                     />
