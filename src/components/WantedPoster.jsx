@@ -8,7 +8,9 @@ const WantedPoster = ({
     top = "0px",
     left = "0px",
     onDelete,
-    onMove
+    onMove,
+    onEdit,
+    onPrint
 }) => {
     return (
         <div className={onDelete ? "poster-wrapper" : ""}>
@@ -46,6 +48,33 @@ const WantedPoster = ({
                     <button className="btn-move" onClick={() => onMove('left')}>←</button>
                     <button className="btn-move" onClick={() => onMove('down')}>↓</button>
                     <button className="btn-move" onClick={() => onMove('right')}>→</button>
+
+                    <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', gap: '5px' }}>
+                        {onEdit && (
+                            <button
+                                onClick={onEdit}
+                                style={{
+                                    background: '#38bdf8', color: '#fff', border: 'none',
+                                    padding: '5px 10px', borderRadius: '4px', cursor: 'pointer',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                ✏️ 修改
+                            </button>
+                        )}
+                        {onPrint && (
+                            <button
+                                onClick={onPrint}
+                                style={{
+                                    background: '#a855f7', color: '#fff', border: 'none',
+                                    padding: '5px 10px', borderRadius: '4px', cursor: 'pointer',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                🖨️ 列印
+                            </button>
+                        )}
+                    </div>
                 </div>
             )}
         </div>
