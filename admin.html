@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>【後台】蒼貓模型懸賞名單管理</title>
+    <title>【核心管理】蒼貓模型懸賞名單</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@900&display=swap');
         body { 
@@ -11,87 +11,112 @@
             display: flex; flex-direction: column; align-items: center; color: #f1f1f1; margin: 0; padding: 20px;
         }
         h1 { font-size: 50px; color: #ffcc33; filter: drop-shadow(2px 2px 0px #000); }
-        
         #poster-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; }
-        .poster-wrapper { position: relative; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; }
-
-        /* 懸賞令縮圖樣式 */
+        .poster-wrapper { position: relative; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 12px; border: 1px solid #444; }
         .wanted-poster {
             width: 280px; background-color: #dfc9a5; background-image: url('https://www.transparenttextures.com/patterns/papyros.png');
             padding: 20px; color: #3e2723; text-align: center; border: 1px solid #bc9b6a; position: relative;
         }
-        .photo-area { width: 100%; height: 180px; border: 4px solid #3e2723; overflow: hidden; position: relative; background: #eee; }
+        .photo-area { width: 100%; height: 180px; border: 4px solid #3e2723; overflow: hidden; position: relative; background: #ddd; }
         .photo-area img { width: 100%; height: 100%; object-fit: cover; position: absolute; }
-        
-        /* 控制按鈕 */
-        .controls { background: rgba(30, 30, 30, 0.95); padding: 25px; border-radius: 20px; margin-top: 40px; width: 400px; border: 2px solid #ffcc33; }
+        .controls { background: rgba(30, 30, 30, 0.95); padding: 25px; border-radius: 20px; margin-top: 40px; width: 420px; border: 2px solid #ffcc33; backdrop-filter: blur(10px); }
         input { width: 100%; margin-bottom: 15px; padding: 10px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; box-sizing: border-box; }
-        .main-btn { width: 100%; padding: 15px; background: #e67e22; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
-        .sync-btn { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .delete-btn { position: absolute; top: -10px; right: -10px; background: red; color: white; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; border: 2px solid white; }
-        
+        .main-btn { width: 100%; padding: 15px; background: #e67e22; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px; font-size: 16px; }
+        .sync-btn { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .delete-btn { position: absolute; top: -10px; right: -10px; background: #ff4444; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; border: 2px solid white; font-weight: bold; }
         .move-row { display: flex; justify-content: center; gap: 5px; margin-top: 5px; }
-        .btn-move { background: #444; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+        .btn-move { background: #555; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 4px; }
+        #status { margin-top: 15px; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <h1>懸賞名單管理後台</h1>
-
-    <div id="poster-container"></div>
+    <div id="poster-container">載入資料中...</div>
 
     <div class="controls">
-        <label>🖼️ 網頁大背景圖連結 (URL)</label>
-        <input type="text" id="bgUrlInput" placeholder="請貼上圖片網址" onchange="updateBg(this.value)">
+        <label>🖼️ 網頁大背景圖 (上傳)</label>
+        <input type="file" id="bgUpload" accept="image/*" onchange="encodeImage(this, 'bg')">
 
         <label>稱號 / 罪名</label>
-        <input type="text" id="crimeInput" placeholder="最強劍士">
+        <input type="text" id="crimeInput" placeholder="例如：餘要求加上">
         
         <label>對象名稱</label>
-        <input type="text" id="nameInput" placeholder="羅羅亞·索隆">
+        <input type="text" id="nameInput" placeholder="例如：名字五個字">
         
         <label>金額</label>
         <input type="number" id="bountyInput" placeholder="30000000">
         
-        <label>👤 人物照片連結 (URL)</label>
-        <input type="text" id="imgUrlInput" placeholder="請貼上圖片網址">
+        <label>👤 人物照片 (上傳)</label>
+        <input type="file" id="imgUpload" accept="image/*">
         
         <button class="main-btn" onclick="addPoster()">新增懸賞令</button>
-        <button class="sync-btn" onclick="syncToGitHub()">🚀 發佈更新到前台</button>
-        <p id="status" style="text-align:center; font-size:12px; color:#ffcc33;"></p>
+        <button class="sync-btn" onclick="syncToGitHub()">🚀 同步並發佈到前台</button>
+        <p id="status"></p>
     </div>
 
     <script>
         let postersData = [];
         let config = {
-            token: "YOUR_GITHUB_TOKEN", // 替換你的 Token
-            user: "YOUR_USERNAME",       // 替換你的 GitHub 帳號
-            repo: "YOUR_REPO_NAME",      // 替換你的 Repository 名稱
+            token: "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", 
+            user: "timcause-bbnet",
+            repo: "wanted-list",
             bg: ""
         };
 
-        function updateBg(url) {
-            config.bg = url;
-            document.body.style.backgroundImage = `url(${url})`;
+        // 初始化：自動抓取 GitHub 上的存檔
+        window.onload = async function() {
+            const url = `https://api.github.com/repos/${config.user}/${config.repo}/contents/data.json`;
+            try {
+                const res = await fetch(url, { headers: { "Authorization": `token ${config.token}` } });
+                if (res.ok) {
+                    const json = await res.json();
+                    const content = JSON.parse(decodeURIComponent(escape(atob(json.content))));
+                    postersData = content.posters || [];
+                    config.bg = content.bg || "";
+                    if (config.bg) document.body.style.backgroundImage = `url(${config.bg})`;
+                }
+            } catch (e) { console.log("目前尚無存檔資料"); }
+            render();
+        };
+
+        // 圖片轉 Base64
+        function encodeImage(input, type) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (type === 'bg') {
+                        config.bg = e.target.result;
+                        document.body.style.backgroundImage = `url(${e.target.result})`;
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
         }
 
         function addPoster() {
-            const data = {
-                id: Date.now(),
-                crime: document.getElementById('crimeInput').value || "未知罪名",
-                name: document.getElementById('nameInput').value || "UNKNOWN",
-                bounty: "฿ " + Number(document.getElementById('bountyInput').value).toLocaleString() + "-",
-                img: document.getElementById('imgUrlInput').value || "https://via.placeholder.com/270x200",
-                top: "0px",
-                left: "0px"
+            const imgInput = document.getElementById('imgUpload');
+            if (!imgInput.files[0]) { alert("請先上傳人物照片！"); return; }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = {
+                    id: Date.now(),
+                    crime: document.getElementById('crimeInput').value || "",
+                    name: document.getElementById('nameInput').value || "UNKNOWN",
+                    bounty: "฿ " + Number(document.getElementById('bountyInput').value).toLocaleString() + "-",
+                    img: e.target.result, // 存入 Base64 圖片
+                    top: "0px", left: "0px"
+                };
+                postersData.push(data);
+                render();
             };
-            postersData.push(data);
-            render();
+            reader.readAsDataURL(imgInput.files[0]);
         }
 
         function render() {
             const container = document.getElementById('poster-container');
-            container.innerHTML = "";
+            container.innerHTML = postersData.length ? "" : "<p>目前名單為空</p>";
             postersData.forEach((p, index) => {
                 const div = document.createElement('div');
                 div.className = "poster-wrapper";
@@ -100,18 +125,18 @@
                     <div class="wanted-poster">
                         <div style="font-size:40px; font-family:Impact;">WANTED</div>
                         <div class="photo-area"><img src="${p.img}" style="top:${p.top}; left:${p.left}; transform:scale(1.2);"></div>
-                        <div style="font-size:12px; margin:5px 0;">DEAD OR ALIVE</div>
-                        <div style="font-weight:bold;">${p.crime}</div>
+                        <div style="font-size:12px; margin:5px 0; border-top:1px solid #3e2723; border-bottom:1px solid #3e2723;">DEAD OR ALIVE</div>
+                        <div style="font-size:12px; font-weight:bold;">${p.crime}</div>
                         <div style="font-size:24px; font-family:Impact;">${p.name}</div>
                         <div style="font-size:16px; font-family:Impact;">${p.bounty}</div>
                     </div>
-                    <div class="move-row">
-                        <button class="btn-move" onclick="moveImg(${index},'up')">↑</button>
-                    </div>
-                    <div class="move-row">
-                        <button class="btn-move" onclick="moveImg(${index},'left')">←</button>
-                        <button class="btn-move" onclick="moveImg(${index},'down')">↓</button>
-                        <button class="btn-move" onclick="moveImg(${index},'right')">→</button>
+                    <div class="move-controls">
+                        <div class="move-row"><button class="btn-move" onclick="moveImg(${index},'up')">↑</button></div>
+                        <div class="move-row">
+                            <button class="btn-move" onclick="moveImg(${index},'left')">←</button>
+                            <button class="btn-move" onclick="moveImg(${index},'down')">↓</button>
+                            <button class="btn-move" onclick="moveImg(${index},'right')">→</button>
+                        </div>
                     </div>
                 `;
                 container.appendChild(div);
@@ -120,8 +145,7 @@
 
         function moveImg(index, dir) {
             let p = postersData[index];
-            let t = parseInt(p.top) || 0;
-            let l = parseInt(p.left) || 0;
+            let t = parseInt(p.top) || 0; let l = parseInt(p.left) || 0;
             if(dir==='up') t-=10; if(dir==='down') t+=10;
             if(dir==='left') l-=10; if(dir==='right') l+=10;
             p.top = t+"px"; p.left = l+"px";
@@ -132,28 +156,28 @@
 
         async function syncToGitHub() {
             const status = document.getElementById('status');
-            status.innerText = "同步中...";
+            status.innerText = "⏳ 同步中，請勿關閉視窗...";
+            status.style.color = "#ffcc33";
             
-            const fileName = "data.json";
+            const url = `https://api.github.com/repos/${config.user}/${config.repo}/contents/data.json`;
             const content = btoa(unescape(encodeURIComponent(JSON.stringify({ bg: config.bg, posters: postersData }))));
-            const url = `https://api.github.com/repos/${config.user}/${config.repo}/contents/${fileName}`;
 
             try {
-                // 獲取目前的檔案 SHA (更新必需)
                 const res = await fetch(url, { headers: { "Authorization": `token ${config.token}` } });
                 let sha = "";
                 if (res.ok) { const json = await res.json(); sha = json.sha; }
 
-                // 上傳新檔案
                 const putRes = await fetch(url, {
                     method: "PUT",
                     headers: { "Authorization": `token ${config.token}`, "Content-Type": "application/json" },
                     body: JSON.stringify({ message: "Update Data", content: content, sha: sha })
                 });
 
-                if (putRes.ok) status.innerText = "✅ 同步成功！前台約 1 分鐘後更新。";
-                else status.innerText = "❌ 同步失敗，請檢查 Token 或 Repo 設定。";
-            } catch (e) { status.innerText = "❌ 發生錯誤：" + e.message; }
+                if (putRes.ok) {
+                    status.innerText = "✅ 發佈成功！前台更新中。";
+                    status.style.color = "#27ae60";
+                } else { status.innerText = "❌ 同步失敗。"; status.style.color = "#ff4444"; }
+            } catch (e) { status.innerText = "❌ 錯誤：" + e.message; }
         }
     </script>
 </body>
