@@ -29,7 +29,7 @@ const Admin = () => {
         if (paramDb) {
             try {
                 const url = atob(paramDb);
-                if (url.includes('firebaseio.com')) {
+                if (url.startsWith('http')) {
                     saveDbUrl(url);
                     // Clear param so it looks clean
                     setSearchParams({});

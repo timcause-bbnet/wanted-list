@@ -1,13 +1,31 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import WantedPoster from '../components/WantedPoster';
 
 const Gallery = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
     const [dbUrl, setDbUrl] = useState(localStorage.getItem('wanted-list-db-url') || "");
     const [showSettings, setShowSettings] = useState(!dbUrl);
 
     const [posters, setPosters] = useState([]);
     const [bg, setBg] = useState("");
     const [loading, setLoading] = useState(false);
+
+    // Auto-config from URL share link
+    useEffect(() => {
+        const paramDb = searchParams.get('db');
+        if (paramDb) {
+            try {
+                const url = atob(paramDb);
+                if (url.startsWith('http')) {
+                    saveDbUrl(url);
+                    setSearchParams({});
+                }
+            } catch (e) {
+                console.error("Auto-config failed", e);
+            }
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         if (!dbUrl) return;
