@@ -27,7 +27,9 @@ const WantedPoster = ({
                         style={{
                             top: top,
                             left: left,
-                            transform: 'scale(1.2)'
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'scale-down'
                         }}
                     />
                 </div>
