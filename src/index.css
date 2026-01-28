@@ -48,12 +48,54 @@ h1.gallery-title {
     background: #000;
     border-top: 5px dashed #333;
     border-bottom: 5px dashed #333;
-    padding: 20px 0;
+    padding: 60px 0;
     position: relative;
     overflow: hidden;
     white-space: nowrap;
     display: flex;
     align-items: center;
+}
+
+/* RWD - Responsive Adjustments */
+@media (max-width: 768px) {
+    h1.gallery-title {
+        font-size: 50px;
+    }
+
+    .wanted-poster {
+        transform: scale(0.85);
+        /* Scale down slightly on tablets */
+        margin: 0 -10px;
+        /* Adjust spacing nicely */
+    }
+
+    .film-track {
+        gap: 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1.gallery-title {
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+
+    .film-row {
+        padding: 40px 0;
+        /* Less padding on small screens if scaled down */
+        margin: 10px 0;
+    }
+
+    .wanted-poster {
+        transform: scale(0.7);
+        /* Scale down significantly for mobile */
+        margin: 0 -30px;
+        /* Negate margin to pull them closer visually due to scaling space */
+    }
+
+    .film-track {
+        gap: 20px;
+    }
 }
 
 .film-track {
