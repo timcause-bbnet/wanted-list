@@ -326,7 +326,35 @@ const Admin = () => {
                 </div>
 
                 <div style={{ marginTop: '30px', borderTop: '1px solid #555', paddingTop: '20px' }}>
-                    <button className="sync-btn" style={{ background: '#555' }} onClick={downloadJson}>⬇️ 下載資料檔 (手動備份)</button>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                        <button className="sync-btn" style={{ background: '#555', marginBottom: 0 }} onClick={downloadJson}>⬇️ 下載備份</button>
+                        <label className="sync-btn" style={{ background: '#2c3e50', marginBottom: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            📂 匯入資料
+                            <input type="file" accept=".json" onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                    try {
+                                        const imported = JSON.parse(ev.target.result);
+                                        if (confirm("確定要匯入這份資料嗎？\n目前的資料將會被覆蓋！")) {
+                                            if (imported.posters || imported.bg) {
+                                                setPosters(imported.posters || []);
+                                                setBg(imported.bg || "");
+                                                alert("匯入成功！");
+                                            } else {
+                                                alert("檔案格式錯誤 (找不到 posters 或 bg)");
+                                            }
+                                        }
+                                    } catch (err) {
+                                        alert("檔案錯誤：" + err.message);
+                                    }
+                                    e.target.value = '';
+                                };
+                                reader.readAsText(file);
+                            }} style={{ display: 'none' }} />
+                        </label>
+                    </div>
                     <button className="clear-btn" onClick={clearAll}>🗑️ 一鍵清空名單</button>
                 </div>
             </div>
