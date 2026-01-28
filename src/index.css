@@ -52,9 +52,11 @@ h1.gallery-title {
     background: transparent;
 
     /* Reduced padding to maximize vertical space for posters */
-    padding: 20px 0;
+    padding: 30px 0;
     position: relative;
-    overflow: hidden;
+    /* Allow vertical popup but hide horizontal scroll */
+    overflow-x: hidden;
+    overflow-y: visible;
     white-space: nowrap;
     display: flex;
     align-items: center;
@@ -140,21 +142,16 @@ h1.gallery-title {
 
 /* Wanted Poster Styles - 3D Effect */
 .wanted-poster {
-    width: 260px;
-    /* Adjusted size for transparent carousel */
+    width: 200px;
     background-color: #dfc9a5;
     background-image: url('https://www.transparenttextures.com/patterns/papyros.png');
-    padding: 15px 10px 10px 10px;
+    padding: 10px 8px 8px 8px;
     color: #3e2723;
     text-align: center;
     border: 1px solid #bc9b6a;
     box-sizing: border-box;
     position: relative;
-
-    /* New 3D / Pop-out effects */
-    box-shadow:
-        5px 5px 0px #5e4034,
-        10px 10px 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 5px 5px 0px #5e4034, 10px 10px 10px rgba(0, 0, 0, 0.5);
     transform: rotate(0deg);
     transition: transform 0.3s;
     display: inline-block;
@@ -162,15 +159,13 @@ h1.gallery-title {
 }
 
 .wanted-poster:hover {
-    transform: scale(1.05) rotate(2deg);
+    transform: scale(1.1) rotate(2deg);
     z-index: 10;
-    box-shadow:
-        8px 8px 0px #5e4034,
-        15px 15px 20px rgba(0, 0, 0, 0.6);
+    box-shadow: 8px 8px 0px #5e4034, 15px 15px 20px rgba(0, 0, 0, 0.6);
 }
 
 .wanted-header {
-    font-size: 50px;
+    font-size: 40px;
     font-family: 'Impact', sans-serif;
     font-weight: 900;
     line-height: 0.8;
@@ -179,9 +174,9 @@ h1.gallery-title {
 }
 
 .photo-area {
-    width: 220px;
-    height: 165px;
-    border: 4px solid #3e2723;
+    width: 160px;
+    height: 120px;
+    border: 3px solid #3e2723;
     margin: 0 auto;
     overflow: hidden;
     position: relative;
@@ -194,9 +189,9 @@ h1.gallery-title {
 }
 
 .dead-or-alive {
-    font-size: 14px;
+    font-size: 12px;
     font-family: 'Impact', sans-serif;
-    margin: 6px 0;
+    margin: 4px 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -208,34 +203,34 @@ h1.gallery-title {
 .dead-or-alive::before,
 .dead-or-alive::after {
     content: "๑";
-    font-size: 20px;
+    font-size: 16px;
 }
 
 .crime-display {
-    font-size: 12px;
+    font-size: 10px;
     font-weight: bold;
-    margin-bottom: 10px;
-    min-height: 15px;
+    margin-bottom: 5px;
+    min-height: 12px;
     line-height: 1.2;
 }
 
 .name-display {
-    font-size: 28px;
+    font-size: 22px;
     font-family: 'Impact', sans-serif;
     text-transform: uppercase;
     line-height: 1;
-    min-height: 35px;
+    min-height: 25px;
 }
 
 .bounty-display {
-    font-size: 18px;
+    font-size: 16px;
     font-family: 'Impact', sans-serif;
     margin-top: 5px;
     font-weight: bold;
 }
 
 .bottom-decoration {
-    font-size: 6px;
+    font-size: 5px;
     text-align: left;
     line-height: 1;
     margin-top: 5px;
@@ -246,7 +241,7 @@ h1.gallery-title {
 }
 
 .marine-footer {
-    font-size: 20px;
+    font-size: 18px;
     font-family: 'Impact', sans-serif;
     text-align: right;
     margin-top: -5px;
