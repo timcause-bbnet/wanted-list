@@ -140,12 +140,13 @@ h1.gallery-title {
     }
 }
 
-/* Wanted Poster Styles - 3D Effect */
+/* Wanted Poster Styles - 3D Effect SCALED DOWN ~15% */
 .wanted-poster {
-    width: 200px;
+    width: 170px;
+    /* Reduced from 200px */
     background-color: #dfc9a5;
     background-image: url('https://www.transparenttextures.com/patterns/papyros.png');
-    padding: 10px 8px 8px 8px;
+    padding: 8px 6px 6px 6px;
     color: #3e2723;
     text-align: center;
     border: 1px solid #bc9b6a;
@@ -165,17 +166,20 @@ h1.gallery-title {
 }
 
 .wanted-header {
-    font-size: 40px;
+    font-size: 34px;
+    /* Reduced from 40px */
     font-family: 'Impact', sans-serif;
     font-weight: 900;
     line-height: 0.8;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     transform: scaleY(1.2);
 }
 
 .photo-area {
-    width: 160px;
-    height: 120px;
+    width: 136px;
+    /* Reduced from 160px */
+    height: 102px;
+    /* Reduced from 120px */
     border: 3px solid #3e2723;
     margin: 0 auto;
     overflow: hidden;
@@ -189,9 +193,10 @@ h1.gallery-title {
 }
 
 .dead-or-alive {
-    font-size: 12px;
+    font-size: 10px;
+    /* Reduced from 12px */
     font-family: 'Impact', sans-serif;
-    margin: 4px 0;
+    margin: 3px 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -203,37 +208,41 @@ h1.gallery-title {
 .dead-or-alive::before,
 .dead-or-alive::after {
     content: "๑";
-    font-size: 16px;
+    font-size: 14px;
+    /* Reduced from 16px */
 }
 
 .crime-display {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: bold;
-    margin-bottom: 5px;
-    min-height: 12px;
+    margin-bottom: 4px;
+    min-height: 10px;
     line-height: 1.2;
 }
 
 .name-display {
-    font-size: 22px;
+    font-size: 18px;
+    /* Reduced from 22px */
     font-family: 'Impact', sans-serif;
     text-transform: uppercase;
     line-height: 1;
-    min-height: 25px;
+    min-height: 20px;
 }
 
 .bounty-display {
-    font-size: 16px;
+    font-size: 13px;
+    /* Reduced from 16px */
     font-family: 'Impact', sans-serif;
-    margin-top: 5px;
+    margin-top: 4px;
     font-weight: bold;
 }
 
 .bottom-decoration {
-    font-size: 5px;
+    font-size: 4px;
+    /* Tiny text */
     text-align: left;
     line-height: 1;
-    margin-top: 5px;
+    margin-top: 4px;
     opacity: 0.8;
     width: 70%;
     float: left;
@@ -241,7 +250,8 @@ h1.gallery-title {
 }
 
 .marine-footer {
-    font-size: 18px;
+    font-size: 16px;
+    /* Reduced from 18px */
     font-family: 'Impact', sans-serif;
     text-align: right;
     margin-top: -5px;
