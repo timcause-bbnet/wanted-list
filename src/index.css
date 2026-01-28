@@ -1,0 +1,252 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@900&display=swap');
+
+:root {
+    --bg-color: #1a1a1a;
+    --text-color: #f1f1f1;
+    --gold-color: #ffcc33;
+}
+
+body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background-color: var(--bg-color);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+/* Page Title Styles */
+h1.page-title {
+    font-size: 55px;
+    color: var(--gold-color);
+    filter: drop-shadow(2px 2px 4px #000);
+    margin: 20px 0;
+    letter-spacing: 5px;
+    text-align: center;
+}
+
+h1.gallery-title {
+    font-size: 85px;
+    font-weight: 900;
+    color: var(--gold-color);
+    background: linear-gradient(to bottom, #fff3b0 0%, #ffcc33 50%, #d4a017 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(4px 4px 0px #000);
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+/* Poster Container */
+#poster-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 40px;
+    width: 100%;
+}
+
+.poster-wrapper {
+    position: relative;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #444;
+}
+
+/* Wanted Poster Styles */
+.wanted-poster {
+    width: 320px;
+    background-color: #dfc9a5;
+    background-image: url('https://www.transparenttextures.com/patterns/papyros.png');
+    padding: 30px 20px 15px 20px;
+    color: #3e2723;
+    text-align: center;
+    border: 1px solid #bc9b6a;
+    box-sizing: border-box;
+    position: relative;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+}
+
+.wanted-header {
+    font-size: 64px;
+    font-family: 'Impact', sans-serif;
+    font-weight: 900;
+    line-height: 0.8;
+    margin-bottom: 10px;
+    transform: scaleY(1.2);
+}
+
+.photo-area {
+    width: 270px;
+    height: 200px;
+    border: 5px solid #3e2723;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    background: #ddd;
+}
+
+.photo-area img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    transition: 0.1s;
+}
+
+.dead-or-alive {
+    font-size: 18px;
+    font-family: 'Impact', sans-serif;
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #3e2723;
+    border-bottom: 1px solid #3e2723;
+    padding: 2px 0;
+}
+
+.dead-or-alive::before,
+.dead-or-alive::after {
+    content: "๑";
+    font-size: 25px;
+}
+
+.crime-display {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    min-height: 20px;
+    line-height: 1.2;
+}
+
+.name-display {
+    font-size: 36px;
+    font-family: 'Impact', sans-serif;
+    text-transform: uppercase;
+    line-height: 1;
+    min-height: 45px;
+}
+
+.bounty-display {
+    font-size: 22px;
+    font-family: 'Impact', sans-serif;
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+.bottom-decoration {
+    font-size: 8px;
+    text-align: left;
+    line-height: 1;
+    margin-top: 5px;
+    opacity: 0.8;
+    width: 70%;
+    float: left;
+    white-space: normal;
+}
+
+.marine-footer {
+    font-size: 26px;
+    font-family: 'Impact', sans-serif;
+    text-align: right;
+    margin-top: -5px;
+}
+
+/* Controls */
+.controls {
+    background: rgba(30, 30, 30, 0.95);
+    padding: 25px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 420px;
+    border: 2px solid var(--gold-color);
+    margin: 0 auto;
+}
+
+.controls input {
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #000;
+    color: white;
+    box-sizing: border-box;
+}
+
+.controls button {
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    font-size: 16px;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.main-btn {
+    background: #e67e22;
+    color: white;
+}
+
+.sync-btn {
+    background: #27ae60;
+    color: white;
+}
+
+.clear-btn {
+    background: #c0392b;
+    color: white;
+}
+
+.delete-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #ff4444;
+    color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    border: 2px solid white;
+    z-index: 10;
+    line-height: 26px;
+    text-align: center;
+}
+
+.move-controls {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.btn-move {
+    background: #555;
+    color: white;
+    font-size: 18px;
+    width: 45px;
+    margin: 2px;
+    border-radius: 4px;
+}
+
+/* Navigation */
+.nav-link {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--gold-color);
+    border: 1px solid var(--gold-color);
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    z-index: 1000;
+}
