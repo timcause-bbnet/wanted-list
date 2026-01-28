@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+
 import WantedPoster from '../components/WantedPoster';
 
 const Gallery = () => {
@@ -36,7 +36,7 @@ const Gallery = () => {
 
     return (
         <div>
-            <Link to="/admin" className="nav-link" style={{ left: '20px', right: 'auto' }}>進入後台</Link>
+
 
             <h1 className="gallery-title">蒼貓模型懸賞展示區</h1>
 
