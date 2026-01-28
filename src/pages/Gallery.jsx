@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import WantedPoster from '../components/WantedPoster';
+import { DEFAULT_DB_URL } from '../config';
 
 const Gallery = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -10,11 +11,13 @@ const Gallery = () => {
         window.location.href.includes('db=') || !!searchParams.get('db')
     );
 
-    // Initialize from LocalStorage
-    const [dbUrl, setDbUrl] = useState(() => localStorage.getItem('wanted-list-db-url') || "");
+    // Initialize from Config > LocalStorage > Empty
+    const [dbUrl, setDbUrl] = useState(() => DEFAULT_DB_URL || localStorage.getItem('wanted-list-db-url') || "");
 
-    // Default showSettings is false if we have a local URL OR if we are auto-configuring
+    // Default showSettings is false if we have a URL (Config or Local) OR if we are auto-configuring
     const [showSettings, setShowSettings] = useState(() => {
+        if (DEFAULT_DB_URL) return false;
+
         const hasLocal = !!localStorage.getItem('wanted-list-db-url');
         const isConfiguring = window.location.href.includes('db=') || !!searchParams.get('db');
         return !hasLocal && !isConfiguring;

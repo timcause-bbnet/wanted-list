@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import WantedPoster from '../components/WantedPoster';
+import { DEFAULT_DB_URL } from '../config';
 
 const Admin = () => {
     // URL Params for Auto-Config
     const [searchParams, setSearchParams] = useSearchParams();
 
     // Database URL State
-    const [dbUrl, setDbUrl] = useState(localStorage.getItem('wanted-list-db-url') || "");
+    const [dbUrl, setDbUrl] = useState(DEFAULT_DB_URL || localStorage.getItem('wanted-list-db-url') || "");
     const [showSettings, setShowSettings] = useState(!dbUrl);
 
     const [posters, setPosters] = useState([]);
