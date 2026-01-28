@@ -1,10 +1,11 @@
 const Admin = () => {
-    // API URL - We use the local python server
-    const API_URL = 'http://localhost:8000/api/data';
+    // Database URL State
+    const [dbUrl, setDbUrl] = useState(localStorage.getItem('wanted-list-db-url') || "");
+    const [showSettings, setShowSettings] = useState(!dbUrl);
 
     const [posters, setPosters] = useState([]);
     const [bg, setBg] = useState("");
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     const [newPoster, setNewPoster] = useState({
         crime: "",
@@ -15,43 +16,71 @@ const Admin = () => {
 
     const [editingIndex, setEditingIndex] = useState(null);
 
-    // Initial Load from Server
+    // Initial Load
     useEffect(() => {
-        loadData();
-    }, []);
+        if (dbUrl) {
+            loadData();
+        }
+    }, [dbUrl]);
+
+    const getFirebaseUrl = () => {
+        if (!dbUrl) return "";
+        let url = dbUrl.trim();
+        // Remove trailing slash if user added it
+        if (url.endsWith('/')) url = url.slice(0, -1);
+        return `${url}/wanted-list.json`;
+    };
 
     const loadData = async () => {
+        setLoading(true);
         try {
-            const res = await fetch(API_URL);
+            const url = getFirebaseUrl();
+            const res = await fetch(url);
             if (res.ok) {
                 const data = await res.json();
-                setPosters(data.posters || []);
-                setBg(data.bg || "");
+                if (data) {
+                    setPosters(data.posters || []);
+                    setBg(data.bg || "");
+                }
             }
         } catch (e) {
-            console.error("Failed to load from server", e);
-            alert("無法連接到伺服器 (Local Server)。請確認 start_server.bat 是否已執行。");
+            console.error("Failed to load from DB", e);
+            alert("讀取失敗：請檢查資料庫網址是否正確");
         } finally {
             setLoading(false);
         }
     };
 
-    // Save to Server
+    // Save to Firebase
     const saveData = async (newPosters, newBg) => {
+        if (!dbUrl) {
+            alert("請先設定資料庫網址！");
+            setShowSettings(true);
+            return;
+        }
+
         try {
             // Optimistic update
             setPosters(newPosters);
             setBg(newBg);
 
-            await fetch(API_URL, {
-                method: 'POST',
+            const url = getFirebaseUrl();
+            await fetch(url, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ posters: newPosters, bg: newBg })
             });
         } catch (e) {
             console.error("Save failed", e);
-            alert("儲存失敗！無法連接到伺服器。");
+            alert("儲存失敗！請檢查網路或網址。");
         }
+    };
+
+    const saveDbUrl = (url) => {
+        localStorage.setItem('wanted-list-db-url', url);
+        setDbUrl(url);
+        setShowSettings(false);
+        alert("資料庫連結已更新！");
     };
 
     const handleBgUpload = (e) => {
@@ -247,13 +276,37 @@ const Admin = () => {
 
     return (
         <div>
-            <div style={{ position: 'fixed', top: 20, left: 20, zIndex: 1000 }}>
-                <Link to="/" className="nav-link" style={{ position: 'static', marginRight: '10px' }}>前往展示區</Link>
-
-                <div style={{ marginTop: '15px', background: 'rgba(30, 30, 30, 0.9)', padding: '15px', borderRadius: '10px', border: '1px solid #ffcc33' }}>
-                    <label style={{ display: 'block', color: 'white', marginBottom: '8px', fontSize: '14px', fontWeight: 'bold' }}>🖼️ 設定網頁大背景圖</label>
-                    <input type="file" onChange={handleBgUpload} accept="image/*" style={{ color: 'white', width: '200px' }} />
+            <div style={{ position: 'fixed', top: 20, left: 20, zIndex: 1000, maxWidth: '300px' }}>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                    <Link to="/" className="nav-link" style={{ position: 'static' }}>前往展示區</Link>
+                    <button onClick={() => setShowSettings(!showSettings)} style={{
+                        background: '#333', color: 'white', border: '1px solid #ffcc33',
+                        padding: '10px', borderRadius: '5px', cursor: 'pointer'
+                    }}>⚙️ 設定</button>
                 </div>
+
+                {showSettings && (
+                    <div style={{ background: 'rgba(30, 30, 30, 0.95)', padding: '15px', borderRadius: '10px', border: '1px solid #ffcc33' }}>
+                        <label style={{ display: 'block', color: '#ffcc33', marginBottom: '5px', fontWeight: 'bold' }}>
+                            🔥 資料庫連結 (Firebase)
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="https://your-project.firebaseio.com"
+                            defaultValue={dbUrl}
+                            onBlur={(e) => saveDbUrl(e.target.value)}
+                            style={{ width: '100%', marginBottom: '10px', padding: '5px' }}
+                        />
+                        <p style={{ fontSize: '12px', color: '#ccc', margin: '0 0 10px 0' }}>
+                            請輸入 Firebase Realtime Database 的網址以啟用即時連線。
+                        </p>
+
+                        <hr style={{ borderColor: '#555', margin: '10px 0' }} />
+
+                        <label style={{ display: 'block', color: 'white', marginBottom: '8px', fontSize: '14px', fontWeight: 'bold' }}>🖼️ 設定網頁大背景圖</label>
+                        <input type="file" onChange={handleBgUpload} accept="image/*" style={{ color: 'white', width: '100%' }} />
+                    </div>
+                )}
             </div>
 
             <h1 className="page-title">懸賞名單管理後台</h1>
