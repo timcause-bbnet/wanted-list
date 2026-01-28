@@ -5,64 +5,74 @@ import WantedPoster from '../components/WantedPoster';
 const Gallery = () => {
     const [searchParams, setSearchParams] = useSearchParams();
 
+    // Check if we suspect an auto-config (url has 'db=')
+    const [isAutoConfiguring, setIsAutoConfiguring] = useState(() =>
+        window.location.href.includes('db=') || !!searchParams.get('db')
+    );
+
     // Initialize from LocalStorage
     const [dbUrl, setDbUrl] = useState(() => localStorage.getItem('wanted-list-db-url') || "");
-    // If we have a DB URL, don't show settings. OR if we have a pending 'db' param, don't show settings yet (wait for effect).
+
+    // Default showSettings is false if we have a local URL OR if we are auto-configuring
     const [showSettings, setShowSettings] = useState(() => {
         const hasLocal = !!localStorage.getItem('wanted-list-db-url');
-        const hasParam = window.location.href.includes('db=');
-        return !hasLocal && !hasParam;
+        const isConfiguring = window.location.href.includes('db=') || !!searchParams.get('db');
+        return !hasLocal && !isConfiguring;
     });
 
     const [posters, setPosters] = useState([]);
     const [bg, setBg] = useState("");
-    const [loading, setLoading] = useState(false);
 
     // Manual Helper to save and apply
     const applyDbConfig = (url) => {
         localStorage.setItem('wanted-list-db-url', url);
         setDbUrl(url);
         setShowSettings(false);
+        setIsAutoConfiguring(false);
         // Clear URL param to look clean
         setSearchParams({});
     };
 
     // Auto-config from URL share link
     useEffect(() => {
-        // Try standard param
-        let paramDb = searchParams.get('db');
+        const attemptConfig = async () => {
+            let paramDb = searchParams.get('db');
 
-        // Fallback: Manual Parse (HashRouter sometimes tricky)
-        if (!paramDb && window.location.href.includes('db=')) {
-            try {
-                const parts = window.location.href.split('db=');
-                if (parts[1]) {
-                    // Start by decoding URI component for manual parse if it was component encoded
-                    // But usually, it comes as raw string from location.href
-                    paramDb = parts[1].split('&')[0];
-                }
-            } catch (e) { }
-        }
-
-        if (paramDb) {
-            try {
-                // Restore '+' signs that might have been interpreted as spaces in unencoded URLs
-                // If it was properly encoded (%2B), searchParams handles it, but manual parse might need care.
-                // Safest approach: replace spaces with + (standard compatible base64 fix)
-                const safeParam = paramDb.replace(/ /g, '+');
-
-                const url = atob(safeParam);
-                if (url.startsWith('http')) {
-                    console.log("Auto-configuring DB:", url);
-                    applyDbConfig(url);
-                }
-            } catch (e) {
-                console.error("Auto-config failed", e);
+            // Fallback: Manual Parse (HashRouter sometimes tricky)
+            if (!paramDb && window.location.href.includes('db=')) {
+                try {
+                    const parts = window.location.href.split('db=');
+                    if (parts[1]) {
+                        paramDb = parts[1].split('&')[0];
+                    }
+                } catch (e) { }
             }
-        } else if (!dbUrl) {
-            // Only show settings if we really have no DB and no param
-            setShowSettings(true);
-        }
+
+            if (paramDb) {
+                try {
+                    // Restore '+' signs that might have been interpreted as spaces in unencoded URLs
+                    const safeParam = paramDb.replace(/ /g, '+');
+                    const url = atob(safeParam);
+                    if (url.startsWith('http')) {
+                        console.log("Auto-configuring DB:", url);
+                        applyDbConfig(url);
+                        return; // Success
+                    }
+                } catch (e) {
+                    console.error("Auto-config failed", e);
+                }
+            }
+
+            // If we got here, failed or no param found.
+            setIsAutoConfiguring(false);
+
+            // Only force settings if we confirm no DB url is available
+            if (!localStorage.getItem('wanted-list-db-url')) {
+                setShowSettings(true);
+            }
+        };
+
+        attemptConfig();
     }, [searchParams]);
 
     useEffect(() => {
@@ -102,8 +112,6 @@ const Gallery = () => {
         }
     };
 
-
-
     // Helper to generate a seamless loop content
     const renderMarqueeContent = (sourcePosters) => {
         if (sourcePosters.length === 0) return <div style={{ color: '#fff', fontSize: '20px' }}>Waiting for bounty...</div>;
@@ -139,6 +147,15 @@ const Gallery = () => {
         }
         return rotated;
     };
+
+    if (isAutoConfiguring) {
+        return (
+            <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#1a1a1a', color: '#ffcc33' }}>
+                <div style={{ fontSize: '40px', marginBottom: '20px' }}>⚓</div>
+                <h2 style={{ fontFamily: 'Noto Sans TC' }}>讀取懸賞令中...</h2>
+            </div>
+        );
+    }
 
     if (!dbUrl || showSettings) {
         return (
