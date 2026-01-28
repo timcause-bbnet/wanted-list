@@ -37,6 +37,8 @@ const Gallery = () => {
             try {
                 const parts = window.location.href.split('db=');
                 if (parts[1]) {
+                    // Start by decoding URI component for manual parse if it was component encoded
+                    // But usually, it comes as raw string from location.href
                     paramDb = parts[1].split('&')[0];
                 }
             } catch (e) { }
@@ -44,9 +46,12 @@ const Gallery = () => {
 
         if (paramDb) {
             try {
-                // Handle potential double encoding or weird chars
-                const cleanParam = paramDb.replace(/[^A-Za-z0-9+/=]/g, "");
-                const url = atob(cleanParam);
+                // Restore '+' signs that might have been interpreted as spaces in unencoded URLs
+                // If it was properly encoded (%2B), searchParams handles it, but manual parse might need care.
+                // Safest approach: replace spaces with + (standard compatible base64 fix)
+                const safeParam = paramDb.replace(/ /g, '+');
+
+                const url = atob(safeParam);
                 if (url.startsWith('http')) {
                     console.log("Auto-configuring DB:", url);
                     applyDbConfig(url);

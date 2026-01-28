@@ -25,13 +25,28 @@ const Admin = () => {
 
     // 1. Check URL for Auto-Config (?db=ENCODED_URL)
     useEffect(() => {
-        const paramDb = searchParams.get('db');
+        let paramDb = searchParams.get('db');
+
+        // Manual verification for HashRouter edge cases
+        if (!paramDb && window.location.href.includes('db=')) {
+            try {
+                const parts = window.location.href.split('db=');
+                if (parts[1]) {
+                    // Take until next param or end
+                    paramDb = parts[1].split('&')[0];
+                }
+            } catch (e) { }
+        }
+
         if (paramDb) {
             try {
-                const url = atob(paramDb);
+                // Restore '+' signs that might have been interpreted as spaces
+                const safeParam = paramDb.replace(/ /g, '+');
+                const url = atob(safeParam);
+
                 if (url.startsWith('http')) {
                     saveDbUrl(url);
-                    // Clear param so it looks clean
+                    // Clear param cleanly
                     setSearchParams({});
                 }
             } catch (e) {
@@ -51,9 +66,10 @@ const Admin = () => {
 
     const getShareLink = (type) => {
         if (!dbUrl) return "";
-        const encoded = btoa(dbUrl);
+        // Encode to ensure + and / don't break URL
+        const encoded = encodeURIComponent(btoa(dbUrl));
         const baseUrl = window.location.origin + window.location.pathname;
-        const hash = type === 'admin' ? '#/admin' : '#/'; // HashRouter syntax
+        const hash = type === 'admin' ? '#/admin' : '#/';
         return `${baseUrl}${hash}?db=${encoded}`;
     };
 
