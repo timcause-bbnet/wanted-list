@@ -5,48 +5,38 @@ const Gallery = () => {
     const [posters, setPosters] = useState([]);
     const [bg, setBg] = useState("");
     const [loading, setLoading] = useState(true);
-    const LOCAL_STORAGE_KEY = 'wanted-list-data';
+    // API URL
+    const API_URL = 'http://localhost:8000/api/data';
 
     useEffect(() => {
         loadData();
-        const handleStorageChange = () => { loadData(); };
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
+
+        // Poll every 5 seconds to get updates from other clients/admin
+        const interval = setInterval(() => {
+            loadData();
+        }, 5000);
+
+        return () => clearInterval(interval);
     }, []);
 
     const loadData = async () => {
-        const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
-        let loadedPosters = [];
-        let loadedBg = "";
-
-        if (localData) {
-            try {
-                const parsed = JSON.parse(localData);
-                loadedPosters = parsed.posters || [];
-                loadedBg = parsed.bg || "";
-            } catch (e) {
-                console.error("Local data parse error", e);
-            }
-        } else {
-            try {
-                const res = await fetch('data.json');
-                if (res.ok) {
-                    const data = await res.json();
-                    loadedPosters = data.posters || [];
-                    loadedBg = data.bg || "";
+        try {
+            const res = await fetch(API_URL);
+            if (res.ok) {
+                const data = await res.json();
+                setPosters(data.posters || []);
+                setBg(data.bg || "");
+                if (data.bg) {
+                    document.body.style.backgroundImage = `url(${data.bg})`;
                 }
-            } catch (e) {
-                console.error("Failed to load data", e);
+                setLoading(false);
             }
+        } catch (e) {
+            console.error("Failed to load from server", e);
+            // Optionally fallback to local cache or do nothing
         }
-
-        setPosters(loadedPosters);
-        setBg(loadedBg);
-        if (loadedBg) {
-            document.body.style.backgroundImage = `url(${loadedBg})`;
-        }
-        setLoading(false);
     };
+
 
     // Helper to generate a seamless loop content
     // We duplicate content to ensure smooth scrolling

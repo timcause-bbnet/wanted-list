@@ -1,34 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import WantedPoster from '../components/WantedPoster';
-
 const Admin = () => {
-    // Lazy init from LocalStorage to avoid "white screen" / flash of empty content
-    const [posters, setPosters] = useState(() => {
-        try {
-            const localData = localStorage.getItem('wanted-list-data');
-            if (localData) {
-                const parsed = JSON.parse(localData);
-                return parsed.posters || [];
-            }
-        } catch (e) {
-            console.error("Failed to parse local data", e);
-        }
-        return [];
-    });
+    // API URL - We use the local python server
+    const API_URL = 'http://localhost:8000/api/data';
 
-    const [bg, setBg] = useState(() => {
-        try {
-            const localData = localStorage.getItem('wanted-list-data');
-            if (localData) {
-                const parsed = JSON.parse(localData);
-                return parsed.bg || "";
-            }
-        } catch (e) {
-            console.error(e);
-        }
-        return "";
-    });
+    const [posters, setPosters] = useState([]);
+    const [bg, setBg] = useState("");
+    const [loading, setLoading] = useState(true);
 
     const [newPoster, setNewPoster] = useState({
         crime: "",
@@ -38,48 +14,54 @@ const Admin = () => {
     });
 
     const [editingIndex, setEditingIndex] = useState(null);
-    const [isInitialized, setIsInitialized] = useState(false);
 
+    // Initial Load from Server
     useEffect(() => {
-        // If we have data from lazy init, we are initialized.
-        // If both are empty, we might need to fetch from data.json (first time user)
-        const checkInit = async () => {
-            if (posters.length === 0 && !bg) {
-                await loadFallbackData();
-            }
-            setIsInitialized(true);
-        };
-        checkInit();
+        loadData();
     }, []);
 
-    const loadFallbackData = async () => {
+    const loadData = async () => {
         try {
-            const res = await fetch('data.json');
+            const res = await fetch(API_URL);
             if (res.ok) {
                 const data = await res.json();
                 setPosters(data.posters || []);
                 setBg(data.bg || "");
             }
         } catch (e) {
-            console.error("Fetch data error", e);
+            console.error("Failed to load from server", e);
+            alert("無法連接到伺服器 (Local Server)。請確認 start_server.bat 是否已執行。");
+        } finally {
+            setLoading(false);
         }
     };
 
-    // Auto-save to LocalStorage whenever posters or bg changes
-    useEffect(() => {
-        // Prevent saving empty state if we haven't finished initialization
-        if (!isInitialized) return;
+    // Save to Server
+    const saveData = async (newPosters, newBg) => {
+        try {
+            // Optimistic update
+            setPosters(newPosters);
+            setBg(newBg);
 
-        const data = { posters, bg };
-        localStorage.setItem('wanted-list-data', JSON.stringify(data));
-        window.dispatchEvent(new Event('storage'));
-    }, [posters, bg, isInitialized]);
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ posters: newPosters, bg: newBg })
+            });
+        } catch (e) {
+            console.error("Save failed", e);
+            alert("儲存失敗！無法連接到伺服器。");
+        }
+    };
 
     const handleBgUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = (e) => setBg(e.target.result);
+            reader.onload = (e) => {
+                const newBg = e.target.result;
+                saveData(posters, newBg);
+            };
             reader.readAsDataURL(file);
         }
     };
@@ -104,25 +86,28 @@ const Admin = () => {
             left: "0px"
         };
 
+        let updatedPosters;
         if (editingIndex !== null) {
-            const updatedPosters = [...posters];
+            updatedPosters = [...posters];
             // Preserve position if editing
             posterData.top = updatedPosters[editingIndex].top;
             posterData.left = updatedPosters[editingIndex].left;
             updatedPosters[editingIndex] = posterData;
-            setPosters(updatedPosters);
             setEditingIndex(null);
         } else {
-            setPosters([...posters, posterData]);
+            updatedPosters = [...posters, posterData];
         }
 
+        saveData(updatedPosters, bg);
         setNewPoster({ crime: "", name: "", bounty: "", img: "" });
         document.getElementById('imgUpload').value = "";
     };
 
     const moveImg = (index, dir) => {
         const newPosters = [...posters];
-        let p = newPosters[index];
+        // Create a deep copy of the item to avoid mutation issues if any
+        let p = { ...newPosters[index] };
+
         let t = parseInt(p.top) || 0;
         let l = parseInt(p.left) || 0;
 
@@ -133,18 +118,21 @@ const Admin = () => {
 
         p.top = t + "px";
         p.left = l + "px";
-        setPosters(newPosters);
+        newPosters[index] = p;
+
+        saveData(newPosters, bg);
     };
 
     const removePoster = (index) => {
         if (confirm("確定要刪除這張懸賞單嗎？")) {
             const newPosters = [...posters];
             newPosters.splice(index, 1);
-            setPosters(newPosters);
+
             if (editingIndex === index) {
                 setEditingIndex(null);
                 setNewPoster({ crime: "", name: "", bounty: "", img: "" });
             }
+            saveData(newPosters, bg);
         }
     };
 
@@ -234,13 +222,10 @@ const Admin = () => {
     };
 
     const clearAll = () => {
-        if (confirm("確定要清空所有名單嗎？(這會清除瀏覽器紀錄)")) {
-            setPosters([]);
-            setBg("");
-            setNewPoster({ crime: "", name: "", bounty: "", img: "" });
+        if (confirm("確定要清空所有名單嗎？(伺服器資料也將被刪除)")) {
             setEditingIndex(null);
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
-            window.dispatchEvent(new Event('storage'));
+            setNewPoster({ crime: "", name: "", bounty: "", img: "" });
+            saveData([], "");
         }
     };
 
@@ -258,6 +243,7 @@ const Admin = () => {
         setEditingIndex(null);
         setNewPoster({ crime: "", name: "", bounty: "", img: "" });
     };
+
 
     return (
         <div>
