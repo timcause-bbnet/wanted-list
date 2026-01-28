@@ -5,7 +5,7 @@ import WantedPoster from '../components/WantedPoster';
 const Admin = () => {
     const [posters, setPosters] = useState([]);
     const [bg, setBg] = useState("");
-    const [status, setStatus] = useState("");
+    const LOCAL_STORAGE_KEY = 'wanted-list-data';
 
     const [newPoster, setNewPoster] = useState({
         crime: "",
@@ -14,19 +14,27 @@ const Admin = () => {
         img: ""
     });
 
-    const [token, setToken] = useState(localStorage.getItem("github_token") || "");
-    const [showTokenInput, setShowTokenInput] = useState(false);
-
-    const config = {
-        token: token,
-        user: "timcause-bbnet",
-        repo: "wanted-list",
-        path: "data.json"
-    };
-
     useEffect(() => {
-        loadFromGitHub();
-    }, [token]); // re-load if token changes
+        loadData();
+    }, []);
+
+    // Auto-save to LocalStorage whenever posters or bg changes
+    useEffect(() => {
+        // Only save if we have data to save, or if we want to confirm clear (which is handled separately)
+        // Check if initial load is done to avoid overwriting with empty
+        const save = () => {
+            const data = { posters, bg };
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+            // Trigger storage event for other tabs to pick up
+            window.dispatchEvent(new Event('storage'));
+        };
+
+        // Simple debounce or just save
+        // For 'instant' feeling, save immediately on state change
+        if (posters.length > 0 || bg) {
+            save();
+        }
+    }, [posters, bg]);
 
     useEffect(() => {
         if (bg) {
@@ -34,34 +42,32 @@ const Admin = () => {
         }
     }, [bg]);
 
-    const saveToken = (val) => {
-        setToken(val);
-        localStorage.setItem("github_token", val);
-    };
+    const loadData = async () => {
+        // 1. Try LocalStorage first
+        const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (localData) {
+            try {
+                const parsed = JSON.parse(localData);
+                setPosters(parsed.posters || []);
+                setBg(parsed.bg || "");
+                return;
+            } catch (e) {
+                console.error("Local data parse error", e);
+            }
+        }
 
-    const loadFromGitHub = async () => {
-        if (!config.token) return; // Skip if no token
-
-        const url = `https://api.github.com/repos/${config.user}/${config.repo}/contents/${config.path}`;
+        // 2. Fallback to GitHub data.json (view only)
         try {
-            const res = await fetch(url, {
-                headers: { "Authorization": `token ${config.token}` }
-            });
+            const res = await fetch('data.json');
             if (res.ok) {
-                const json = await res.json();
-                // Decode: base64 -> escape -> decodeURIComponent -> parse
-                const content = JSON.parse(decodeURIComponent(escape(atob(json.content))));
-                setPosters(content.posters || []);
-                setBg(content.bg || "");
-                setStatus("");
-            } else {
-                if (res.status === 401 || res.status === 403) {
-                    setStatus("⚠️ Token 無效或權限不足");
-                }
+                const data = await res.json();
+                setPosters(data.posters || []);
+                setBg(data.bg || "");
+                // Sync initial github data to localstorage so it's editable immediately?
+                // localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
             }
         } catch (e) {
-            console.error(e);
-            setStatus("尚未有存檔或讀取失敗");
+            console.error("Fetch data error", e);
         }
     };
 
@@ -94,9 +100,7 @@ const Admin = () => {
             left: "0px"
         }]);
 
-        // Reset form mostly
         setNewPoster({ ...newPoster, name: "", bounty: "", img: "" });
-        // Reset file input visual
         document.getElementById('imgUpload').value = "";
     };
 
@@ -123,90 +127,34 @@ const Admin = () => {
     };
 
     const clearAll = () => {
-        if (confirm("確定要清空所有名單並同步到 GitHub 嗎？")) {
+        if (confirm("確定要清空所有名單嗎？(這會清除瀏覽器紀錄)")) {
             setPosters([]);
+            setBg("");
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            window.dispatchEvent(new Event('storage'));
         }
     };
 
-    const syncToGitHub = async () => {
-        if (!config.token) {
-            setStatus("❌ 請先設定 GitHub Token");
-            setShowTokenInput(true);
-            return;
-        }
-
-        setStatus("⏳ 正在同步到 GitHub...");
-        const url = `https://api.github.com/repos/${config.user}/${config.repo}/contents/${config.path}`;
-
-        try {
-            const getRes = await fetch(url + "?t=" + Date.now(), {
-                headers: { "Authorization": `token ${config.token}` }
-            });
-
-            let sha = "";
-            if (getRes.ok) {
-                const getJson = await getRes.json();
-                sha = getJson.sha;
-            }
-
-            // Encode: stringify -> encodeURIComponent -> unescape -> btoa
-            const content = btoa(unescape(encodeURIComponent(JSON.stringify({ bg, posters }))));
-
-            const putRes = await fetch(url, {
-                method: "PUT",
-                headers: {
-                    "Authorization": `token ${config.token}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    message: "Update Data via Admin",
-                    content: content,
-                    sha: sha
-                })
-            });
-
-            if (putRes.ok) {
-                setStatus("✅ 同步成功！");
-            } else {
-                const err = await putRes.json();
-                setStatus("❌ 失敗：" + (err.message || "Bad credentials"));
-            }
-        } catch (e) {
-            setStatus("❌ 發生錯誤：" + e.message);
-        }
+    const downloadJson = () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ bg, posters }));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "data.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
     };
 
     return (
         <div>
             <div style={{ position: 'fixed', top: 20, left: 20, zIndex: 1000 }}>
                 <Link to="/" className="nav-link" style={{ position: 'static', marginRight: '10px' }}>前往展示區</Link>
-                <button className="nav-link" style={{ position: 'static', background: '#333', cursor: 'pointer' }} onClick={() => setShowTokenInput(!showTokenInput)}>
-                    🔑 設定 Token
-                </button>
             </div>
-
-            {showTokenInput && (
-                <div style={{
-                    position: 'fixed', top: 70, left: 20, zIndex: 1000,
-                    background: '#222', padding: '15px', borderRadius: '10px',
-                    border: '1px solid #ffcc33', width: '300px'
-                }}>
-                    <label style={{ display: 'block', marginBottom: '5px', color: 'white' }}>GitHub Token:</label>
-                    <input
-                        type="password"
-                        value={token}
-                        onChange={(e) => saveToken(e.target.value)}
-                        placeholder="ghp_..."
-                        style={{ width: '100%', padding: '8px', boxSizing: 'border-box', marginBottom: '5px', borderRadius: '5px' }}
-                    />
-                    <small style={{ color: '#aaa', display: 'block' }}>Token 會儲存在瀏覽器中</small>
-                </div>
-            )}
 
             <h1 className="page-title">懸賞名單管理後台</h1>
 
             <div id="poster-container">
-                {posters.length === 0 ? "目前名單為空或讀取中..." :
+                {posters.length === 0 ? "目前名單為空..." :
                     posters.map((p, i) => (
                         <WantedPoster
                             key={i}
@@ -250,12 +198,8 @@ const Admin = () => {
                 <input type="file" id="imgUpload" accept="image/*" onChange={handleImgUpload} />
 
                 <button className="main-btn" onClick={addPoster}>➕ 新增懸賞令</button>
-                <button className="sync-btn" onClick={syncToGitHub}>🚀 同步到 GitHub (發佈)</button>
+                <button className="sync-btn" style={{ background: '#555' }} onClick={downloadJson}>⬇️ 下載資料檔 (手動備份)</button>
                 <button className="clear-btn" onClick={clearAll}>🗑️ 一鍵清空名單</button>
-
-                <p style={{ textAlign: 'center', fontWeight: 'bold', color: status.includes('失敗') || status.includes('錯誤') ? '#ff4444' : '#27ae60' }}>
-                    {status}
-                </p>
             </div>
         </div>
     );
