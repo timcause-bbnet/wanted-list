@@ -15,6 +15,7 @@ const Admin = () => {
     });
 
     const [editingIndex, setEditingIndex] = useState(null);
+    const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -22,8 +23,9 @@ const Admin = () => {
 
     // Auto-save to LocalStorage whenever posters or bg changes
     useEffect(() => {
-        // Only save if we have data to save, or if we want to confirm clear (which is handled separately)
-        // Check if initial load is done to avoid overwriting with empty
+        // Only save if we have finished initial loading
+        if (!loaded) return;
+
         const save = () => {
             const data = { posters, bg };
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
@@ -31,12 +33,8 @@ const Admin = () => {
             window.dispatchEvent(new Event('storage'));
         };
 
-        // Simple debounce or just save
-        // For 'instant' feeling, save immediately on state change
-        if (posters.length > 0 || bg) {
-            save();
-        }
-    }, [posters, bg]);
+        save();
+    }, [posters, bg, loaded]);
 
     useEffect(() => {
         if (bg) {
@@ -52,6 +50,7 @@ const Admin = () => {
                 const parsed = JSON.parse(localData);
                 setPosters(parsed.posters || []);
                 setBg(parsed.bg || "");
+                setLoaded(true);
                 return;
             } catch (e) {
                 console.error("Local data parse error", e);
@@ -68,6 +67,8 @@ const Admin = () => {
             }
         } catch (e) {
             console.error("Fetch data error", e);
+        } finally {
+            setLoaded(true);
         }
     };
 
