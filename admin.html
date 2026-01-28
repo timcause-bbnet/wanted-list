@@ -9,55 +9,72 @@
             font-family: 'Noto Sans TC', sans-serif; background-color: #1a1a1a; 
             background-size: cover; background-position: center; background-attachment: fixed;
             display: flex; flex-direction: column; align-items: center; color: #f1f1f1; margin: 0; padding: 20px;
+            min-height: 100vh;
         }
-        /* 標題樣式優化 */
-        h1 { font-size: 50px; color: #ffcc33; filter: drop-shadow(2px 2px 0px #000); margin-top: 10px; }
+        h1 { font-size: 50px; color: #ffcc33; filter: drop-shadow(2px 2px 4px #000); margin: 20px 0; }
         
-        #poster-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; min-height: 200px; }
-        .poster-wrapper { position: relative; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 12px; border: 1px solid #444; }
-        
-        .wanted-poster {
-            width: 280px; background-color: #dfc9a5; background-image: url('https://www.transparenttextures.com/patterns/papyros.png');
-            padding: 20px; color: #3e2723; text-align: center; border: 1px solid #bc9b6a; position: relative;
-        }
-        .photo-area { width: 100%; height: 180px; border: 4px solid #3e2723; overflow: hidden; position: relative; background: #ddd; }
-        .photo-area img { width: 100%; height: 100%; object-fit: cover; position: absolute; transition: 0.1s; }
+        #poster-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin-bottom: 40px; }
+        .poster-wrapper { position: relative; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 12px; border: 1px solid #444; text-align: center; }
 
-        /* 控制區 */
-        .controls { background: rgba(30, 30, 30, 0.95); padding: 25px; border-radius: 20px; margin-top: 40px; width: 420px; border: 2px solid #ffcc33; }
+        /* 懸賞令本體樣式 - 完美還原 */
+        .wanted-poster {
+            width: 320px; background-color: #dfc9a5; 
+            background-image: url('https://www.transparenttextures.com/patterns/papyros.png');
+            padding: 30px 20px 15px 20px; color: #3e2723; text-align: center; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #bc9b6a; box-sizing: border-box;
+        }
+        .wanted-header { font-size: 64px; font-family: 'Impact', sans-serif; font-weight: 900; line-height: 0.8; margin-bottom: 10px; transform: scaleY(1.2); }
+        .photo-area { width: 270px; height: 200px; border: 5px solid #3e2723; margin: 0 auto; overflow: hidden; position: relative; background: #ddd; }
+        .photo-area img { width: 100%; height: 100%; object-fit: cover; position: absolute; transition: 0.1s; image-rendering: high-quality; }
+        .dead-or-alive { font-size: 18px; font-family: 'Impact', sans-serif; margin: 8px 0; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #3e2723; border-bottom: 1px solid #3e2723; padding: 2px 0; }
+        .dead-or-alive::before, .dead-or-alive::after { content: "๑"; font-size: 25px; }
+        .crime-display { font-size: 16px; font-weight: bold; margin-bottom: 15px; min-height: 20px; }
+        .name-display { font-size: 36px; font-family: 'Impact', sans-serif; text-transform: uppercase; line-height: 1; min-height: 45px; }
+        .bounty-display { font-size: 22px; font-family: 'Impact', sans-serif; margin-top: 5px; }
+        .bottom-decoration { font-size: 8px; text-align: left; line-height: 1; margin-top: 5px; opacity: 0.8; width: 70%; float: left; }
+        .marine-footer { font-size: 26px; font-family: 'Impact', sans-serif; text-align: right; margin-top: -5px; }
+
+        /* 控制面板 */
+        .controls { background: rgba(30, 30, 30, 0.95); padding: 25px; border-radius: 20px; width: 420px; border: 2px solid #ffcc33; backdrop-filter: blur(10px); }
+        .controls label { display: block; margin-bottom: 5px; color: #dfc9a5; font-weight: bold; }
         input { width: 100%; margin-bottom: 15px; padding: 10px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; box-sizing: border-box; }
         
-        .main-btn { width: 100%; padding: 12px; background: #e67e22; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
-        .sync-btn { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .clear-btn { width: 100%; padding: 12px; background: #c0392b; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button { padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; font-size: 16px; transition: 0.2s; }
+        .main-btn { width: 100%; background: #e67e22; color: white; margin-bottom: 10px; }
+        .sync-btn { width: 100%; background: #27ae60; color: white; }
+        .clear-btn { width: 100%; background: #c0392b; color: white; margin-top: 10px; }
         
-        .delete-btn { position: absolute; top: -10px; right: -10px; background: #ff4444; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; border: 2px solid white; font-weight: bold; }
-        .move-row { display: flex; justify-content: center; gap: 5px; margin-top: 5px; }
-        .btn-move { background: #555; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 4px; }
+        .delete-btn { position: absolute; top: -10px; right: -10px; background: #ff4444; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; border: 2px solid white; z-index: 10; }
+        .move-controls { margin-top: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; }
+        .btn-move { background: #555; color: white; font-size: 18px; width: 45px; margin: 2px; }
+        #status { margin-top: 15px; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <h1>懸賞名單管理後台</h1>
-    <div id="poster-container">載入 GitHub 現有資料中...</div>
+    <div id="poster-container">正在從 GitHub 載入資料...</div>
 
     <div class="controls">
         <label>🖼️ 網頁大背景圖 (上傳)</label>
-        <input type="file" id="bgUpload" accept="image/*" onchange="encodeImage(this, 'bg')">
+        <input type="file" id="bgUpload" accept="image/*" onchange="encodeBg(this)">
 
         <label>稱號 / 罪名</label>
-        <input type="text" id="crimeInput" placeholder="例如：測試罪名">
+        <input type="text" id="crimeInput" placeholder="例如：3抽里香 2抽壞里">
+        
         <label>對象名稱</label>
-        <input type="text" id="nameInput" placeholder="例如：名字">
-        <label>金額</label>
+        <input type="text" id="nameInput" placeholder="例如：名字五個字">
+        
+        <label>懸賞金額</label>
         <input type="number" id="bountyInput" placeholder="30000000">
+        
         <label>👤 人物照片 (上傳)</label>
         <input type="file" id="imgUpload" accept="image/*">
         
         <button class="main-btn" onclick="addPoster()">➕ 新增懸賞令</button>
         <button class="sync-btn" onclick="syncToGitHub()">🚀 同步並發佈 (覆蓋 GitHub)</button>
-        <button class="clear-btn" onclick="clearLocal()">🗑️ 一鍵清空目前名單</button>
-        <p id="status" style="text-align:center; font-weight:bold;"></p>
+        <button class="clear-btn" onclick="clearAll()">🗑️ 一鍵清空目前名單</button>
+        <p id="status"></p>
     </div>
 
     <script>
@@ -65,10 +82,11 @@
         let config = {
             token: "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", 
             user: "timcause-bbnet",
-            repo: "wanted-list"
+            repo: "wanted-list",
+            bg: ""
         };
 
-        // 1. 初始化：進入頁面先抓 GitHub 上現在有哪些東西
+        // 初始化：自動載入
         window.onload = async function() {
             const status = document.getElementById('status');
             const url = `https://api.github.com/repos/${config.user}/${config.repo}/contents/data.json`;
@@ -78,20 +96,20 @@
                     const json = await res.json();
                     const content = JSON.parse(decodeURIComponent(escape(atob(json.content))));
                     postersData = content.posters || [];
-                    if (content.bg) document.body.style.backgroundImage = `url(${content.bg})`;
-                    status.innerText = "✅ 已載入 GitHub 現有資料";
-                } else {
-                    status.innerText = "ℹ️ GitHub 目前無資料檔案";
-                }
+                    config.bg = content.bg || "";
+                    if (config.bg) document.body.style.backgroundImage = `url(${config.bg})`;
+                    status.innerText = "✅ 資料載入成功";
+                } else { status.innerText = "ℹ️ GitHub 尚無存檔"; }
             } catch (e) { status.innerText = "❌ 載入失敗"; }
             render();
         };
 
-        function encodeImage(input, type) {
+        function encodeBg(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    if (type === 'bg') document.body.style.backgroundImage = `url(${e.target.result})`;
+                    config.bg = e.target.result;
+                    document.body.style.backgroundImage = `url(${e.target.result})`;
                 };
                 reader.readAsDataURL(input.files[0]);
             }
@@ -124,44 +142,45 @@
                 div.innerHTML = `
                     <button class="delete-btn" onclick="removePoster(${index})">X</button>
                     <div class="wanted-poster">
-                        <div style="font-size:40px; font-family:Impact;">WANTED</div>
+                        <div class="wanted-header">WANTED</div>
                         <div class="photo-area"><img src="${p.img}" style="top:${p.top}; left:${p.left}; transform:scale(1.2);"></div>
-                        <div style="font-size:12px; margin:5px 0; border-top:1px solid #3e2723; border-bottom:1px solid #3e2723;">DEAD OR ALIVE</div>
-                        <div style="font-size:12px; font-weight:bold;">${p.crime}</div>
-                        <div style="font-size:24px; font-family:Impact;">${p.name}</div>
-                        <div style="font-size:16px; font-family:Impact;">${p.bounty}</div>
+                        <div class="dead-or-alive">DEAD OR ALIVE</div>
+                        <div class="crime-display">${p.crime}</div>
+                        <div class="name-display">${p.name}</div>
+                        <div class="bounty-display">${p.bounty}</div>
+                        <div class="bottom-decoration">
+                            KONO SAKUHIN WA FICTION DETHUNODE JITSUSAINO J人物 BUTSU DAITAI SONOTA NO SOSHIKI TO DOITSU NO MEISHOU GA GEKICHU NI TOUJO SHITEMO JITSUSAINO MONO TO WA ISSAI MUKANKEIDETHU.
+                        </div>
+                        <div class="marine-footer">MARINE</div>
+                        <div style="clear:both;"></div>
                     </div>
                     <div class="move-controls">
-                        <div class="move-row"><button class="btn-move" onclick="moveImg(${index},'up')">↑</button></div>
-                        <div class="move-row"><button class="btn-move" onclick="moveImg(${index},'left')">←</button><button class="btn-move" onclick="moveImg(${index},'down')">↓</button><button class="btn-move" onclick="moveImg(${index},'right')">→</button></div>
+                        <button class="btn-move" onclick="moveImg(${index},'up')">↑</button><br>
+                        <button class="btn-move" onclick="moveImg(${index},'left')">←</button>
+                        <button class="btn-move" onclick="moveImg(${index},'down')">↓</button>
+                        <button class="btn-move" onclick="moveImg(${index},'right')">→</button>
                     </div>
                 `;
                 container.appendChild(div);
             });
         }
 
-        function clearLocal() {
-            if(confirm("確定要清空目前所有名單嗎？(需同步才會清空 GitHub)")) {
-                postersData = [];
-                render();
-            }
-        }
-
-        function removePoster(index) { postersData.splice(index, 1); render(); }
-
         function moveImg(index, dir) {
             let p = postersData[index];
             let t = parseInt(p.top) || 0, l = parseInt(p.left) || 0;
             if(dir==='up') t-=10; if(dir==='down') t+=10; if(dir==='left') l-=10; if(dir==='right') l+=10;
-            p.top = t+"px"; p.left = l+"px";
-            render();
+            p.top = t+"px"; p.left = l+"px"; render();
         }
+
+        function removePoster(index) { postersData.splice(index, 1); render(); }
+        function clearAll() { if(confirm("確定清空嗎？")) { postersData = []; render(); } }
 
         async function syncToGitHub() {
             const status = document.getElementById('status');
-            status.innerText = "⏳ 同步中...";
+            status.innerText = "⏳ 同步中，圖片大請稍候...";
+            status.style.color = "#ffcc33";
             const url = `https://api.github.com/repos/${config.user}/${config.repo}/contents/data.json`;
-            const content = btoa(unescape(encodeURIComponent(JSON.stringify({ bg: "", posters: postersData }))));
+            const content = btoa(unescape(encodeURIComponent(JSON.stringify({ bg: config.bg, posters: postersData }))));
             try {
                 const res = await fetch(url, { headers: { "Authorization": `token ${config.token}` } });
                 let sha = "";
@@ -169,10 +188,10 @@
                 const putRes = await fetch(url, {
                     method: "PUT",
                     headers: { "Authorization": `token ${config.token}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({ message: "Force Reset Data", content: content, sha: sha })
+                    body: JSON.stringify({ message: "Update Data", content: content, sha: sha })
                 });
-                if (putRes.ok) status.innerText = "✅ 已成功覆蓋 GitHub 資料！";
-                else status.innerText = "❌ 同步失敗";
+                if (putRes.ok) { status.innerText = "✅ 同步成功！"; status.style.color = "#27ae60"; }
+                else { status.innerText = "❌ 失敗：檔案可能過大或 Token 錯誤。"; status.style.color = "#ff4444"; }
             } catch (e) { status.innerText = "❌ 錯誤：" + e.message; }
         }
     </script>
