@@ -14,8 +14,11 @@ const Admin = () => {
         img: ""
     });
 
+    const [token, setToken] = useState(localStorage.getItem("github_token") || "");
+    const [showTokenInput, setShowTokenInput] = useState(false);
+
     const config = {
-        token: "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", // Warning: Exposed token
+        token: token,
         user: "timcause-bbnet",
         repo: "wanted-list",
         path: "data.json"
@@ -23,7 +26,7 @@ const Admin = () => {
 
     useEffect(() => {
         loadFromGitHub();
-    }, []);
+    }, [token]); // re-load if token changes
 
     useEffect(() => {
         if (bg) {
@@ -31,7 +34,14 @@ const Admin = () => {
         }
     }, [bg]);
 
+    const saveToken = (val) => {
+        setToken(val);
+        localStorage.setItem("github_token", val);
+    };
+
     const loadFromGitHub = async () => {
+        if (!config.token) return; // Skip if no token
+
         const url = `https://api.github.com/repos/${config.user}/${config.repo}/contents/${config.path}`;
         try {
             const res = await fetch(url, {
@@ -43,6 +53,11 @@ const Admin = () => {
                 const content = JSON.parse(decodeURIComponent(escape(atob(json.content))));
                 setPosters(content.posters || []);
                 setBg(content.bg || "");
+                setStatus("");
+            } else {
+                if (res.status === 401 || res.status === 403) {
+                    setStatus("⚠️ Token 無效或權限不足");
+                }
             }
         } catch (e) {
             console.error(e);
@@ -114,6 +129,12 @@ const Admin = () => {
     };
 
     const syncToGitHub = async () => {
+        if (!config.token) {
+            setStatus("❌ 請先設定 GitHub Token");
+            setShowTokenInput(true);
+            return;
+        }
+
         setStatus("⏳ 正在同步到 GitHub...");
         const url = `https://api.github.com/repos/${config.user}/${config.repo}/contents/${config.path}`;
 
@@ -148,7 +169,7 @@ const Admin = () => {
                 setStatus("✅ 同步成功！");
             } else {
                 const err = await putRes.json();
-                setStatus("❌ 失敗：" + err.message);
+                setStatus("❌ 失敗：" + (err.message || "Bad credentials"));
             }
         } catch (e) {
             setStatus("❌ 發生錯誤：" + e.message);
@@ -157,7 +178,30 @@ const Admin = () => {
 
     return (
         <div>
-            <Link to="/" className="nav-link">前往展示區</Link>
+            <div style={{ position: 'fixed', top: 20, left: 20, zIndex: 1000 }}>
+                <Link to="/" className="nav-link" style={{ position: 'static', marginRight: '10px' }}>前往展示區</Link>
+                <button className="nav-link" style={{ position: 'static', background: '#333', cursor: 'pointer' }} onClick={() => setShowTokenInput(!showTokenInput)}>
+                    🔑 設定 Token
+                </button>
+            </div>
+
+            {showTokenInput && (
+                <div style={{
+                    position: 'fixed', top: 70, left: 20, zIndex: 1000,
+                    background: '#222', padding: '15px', borderRadius: '10px',
+                    border: '1px solid #ffcc33', width: '300px'
+                }}>
+                    <label style={{ display: 'block', marginBottom: '5px', color: 'white' }}>GitHub Token:</label>
+                    <input
+                        type="password"
+                        value={token}
+                        onChange={(e) => saveToken(e.target.value)}
+                        placeholder="ghp_..."
+                        style={{ width: '100%', padding: '8px', boxSizing: 'border-box', marginBottom: '5px', borderRadius: '5px' }}
+                    />
+                    <small style={{ color: '#aaa', display: 'block' }}>Token 會儲存在瀏覽器中</small>
+                </div>
+            )}
 
             <h1 className="page-title">懸賞名單管理後台</h1>
 
