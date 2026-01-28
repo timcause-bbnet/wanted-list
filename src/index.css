@@ -81,25 +81,24 @@ h1.gallery-title {
 
 @media (max-width: 480px) {
     h1.gallery-title {
-        font-size: 36px;
-        margin-bottom: 5px;
-        padding-top: 10px;
+        font-size: 32px;
+        margin-bottom: 2px;
+        padding-top: 0;
     }
 
     .film-row {
-        /* Minimize vertical padding on mobile to reduce "wide" feeling */
         padding: 10px 0;
         margin: 5px 0;
     }
 
     .wanted-poster {
-        /* Base size is 170px. Scale 0.9 ~ 153px width */
-        transform: scale(0.9);
-        margin: 0;
+        /* Scale 0.75 ~ 127.5px width */
+        transform: scale(0.75);
+        margin: 0 -20px;
     }
 
     .film-track {
-        gap: 30px;
+        gap: 20px;
     }
 }
 

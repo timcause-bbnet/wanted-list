@@ -17,11 +17,17 @@ const Gallery = () => {
     // Default showSettings is false if we have a URL (Config or Local) OR if we are auto-configuring
     const [showSettings, setShowSettings] = useState(() => {
         if (DEFAULT_DB_URL) return false;
-
         const hasLocal = !!localStorage.getItem('wanted-list-db-url');
         const isConfiguring = window.location.href.includes('db=') || !!searchParams.get('db');
         return !hasLocal && !isConfiguring;
     });
+
+    // Validates config on mount to fix any stuck states and ensures we don't get stuck on settings
+    useEffect(() => {
+        if (DEFAULT_DB_URL) {
+            setShowSettings(false);
+        }
+    }, []);
 
     const [posters, setPosters] = useState([]);
     const [bg, setBg] = useState("");
@@ -182,12 +188,15 @@ const Gallery = () => {
 
     return (
         <div style={{
-            overflow: 'hidden',
-            height: '100vh',
+            overflowX: 'hidden',
+            overflowY: 'auto',
+            minHeight: '100vh',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
-            position: 'relative'
+            justifyContent: 'flex-start',
+            position: 'relative',
+            paddingTop: '30px',
+            backgroundColor: '#1a1a1a'
         }}>
             {/* Settings Trigger */}
             <div
